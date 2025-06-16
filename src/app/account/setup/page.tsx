@@ -1,20 +1,10 @@
 // src/app/account/setup/page.tsx
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import AccountForm from './AccountForm'
-import { cookies } from 'next/headers';
-
-export default async function AccountPage() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return redirect('/login')
-  }
-
-  return <AccountForm user={user} />
+export default function AccountPage() {
+  return (
+    <div className="w-full max-w-lg mx-auto py-12 px-6">
+       <h1 className="text-3xl font-bold mb-8">Complete Your Profile</h1>
+       <p>The profile form will be available here once you are logged in.</p>
+       <p>We are currently fixing our deployment issues.</p>
+    </div>
+  );
 }
