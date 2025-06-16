@@ -14,7 +14,6 @@ export default function AccountForm({ user }: { user: User | null }) {
   const [website, setWebsite] = useState<string | null>(null)
 
   const getProfile = useCallback(async () => {
-    // ... (this function remains the same)
     try {
       setLoading(true)
 
@@ -25,7 +24,9 @@ export default function AccountForm({ user }: { user: User | null }) {
         .single()
 
       if (error && status !== 406) {
-        throw error
+        // Log the error to use the variable
+        console.error('Error loading user data:', error)
+        alert('Error loading user data!')
       }
 
       if (data) {
@@ -34,7 +35,8 @@ export default function AccountForm({ user }: { user: User | null }) {
         setWebsite(data.website)
       }
     } catch (error) {
-      alert('Error loading user data!')
+      alert('An error occurred while fetching your profile.')
+      console.error('Catch block error:', error)
     } finally {
       setLoading(false)
     }

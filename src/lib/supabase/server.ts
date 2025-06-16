@@ -14,15 +14,15 @@ export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options })
-          } catch (_error) { // <-- FIX #1
-            // The `set` method was called from a Server Component.
+          } catch (error) { // <-- We are now using the 'error' variable
+            console.error('Error setting cookie:', error)
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
-          } catch (_error) { // <-- FIX #2
-            // The `delete` method was called from a Server Component.
+          } catch (error) { // <-- We are now using the 'error' variable
+            console.error('Error removing cookie:', error)
           }
         },
       },
