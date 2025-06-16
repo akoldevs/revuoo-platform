@@ -14,12 +14,11 @@ export default function AuthButton() {
   const supabase = createClient()
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    // Also fetch the initial session
     const getInitialSession = async () => {
       const { data } = await supabase.auth.getSession()
       setUser(data.session?.user ?? null)
@@ -36,15 +35,17 @@ export default function AuthButton() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')
+    router.refresh(); // Force a refresh to update server components
   }
 
+  // We won't render anything until the session is loaded
   if (loading) {
-    return <div className="py-2 px-3">Loading...</div>
+    return <div className="w-[88px] h-[40px]"></div> // A placeholder with a fixed size to prevent layout shift
   }
 
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, {user.email}
+      <span className="hidden sm:inline">Hey, {user.email}</span>
       <button onClick={handleSignOut} className="py-2 px-4 rounded-md no-underline bg-gray-200 hover:bg-gray-300">
         Logout
       </button>
