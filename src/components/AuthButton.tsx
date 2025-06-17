@@ -1,18 +1,18 @@
+// src/components/AuthButton.tsx
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import { type User } from '@supabase/supabase-js'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+// The unused 'useRouter' has been removed from this import
 import { useState, useEffect } from 'react'
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
-    const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       setLoading(false)
@@ -29,14 +29,14 @@ export default function AuthButton() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [supabase])
 
   const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.reload()
+    await supabase.auth.signOut();
+    window.location.reload();
   }
 
+  // A placeholder to prevent layout shift while session is loading
   if (loading) {
     return <div className="w-[88px] h-[40px]"></div>
   }

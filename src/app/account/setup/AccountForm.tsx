@@ -9,27 +9,21 @@ export default function AccountForm() {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null) // We will get the user on the client
+  const [user, setUser] = useState<User | null>(null)
   const [fullname, setFullname] = useState<string | null>(null)
   const [username, setUsername] = useState<string | null>(null)
   const [website, setWebsite] = useState<string | null>(null)
 
-  // Get the current logged-in user
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setUser(user)
-      } else {
-        // If no user, redirect to login
-        router.push('/login')
-      }
+      setUser(user)
     }
     fetchUser()
-  }, [supabase, router])
+  }, [supabase])
 
   const getProfile = useCallback(async () => {
-    if (!user) return; // Don't run if user isn't loaded yet
+    if (!user) return;
 
     try {
       setLoading(true)
@@ -40,7 +34,8 @@ export default function AccountForm() {
         .single()
 
       if (error && status !== 406) {
-        throw error
+        // Now we are using the 'error' variable
+        console.error('Error loading user data:', error)
       }
 
       if (data) {
@@ -49,13 +44,12 @@ export default function AccountForm() {
         setWebsite(data.website)
       }
     } catch (error) {
-      alert('Error loading user data!')
+      alert('An error occurred while fetching your profile.')
     } finally {
       setLoading(false)
     }
   }, [user, supabase])
 
-  // When the user object is loaded, get the profile
   useEffect(() => {
     if (user) {
       getProfile()
