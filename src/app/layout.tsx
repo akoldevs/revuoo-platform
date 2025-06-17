@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
+import AuthListener from '@/components/AuthListener' // <-- 1. IMPORT
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <AuthListener /> {/* <-- 2. ADD THE LISTENER */}
         <Header />
         <main>{children}</main>
       </body>

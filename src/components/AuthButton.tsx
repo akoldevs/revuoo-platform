@@ -24,7 +24,7 @@ export default function AuthButton() {
       setUser(data.session?.user ?? null)
       setLoading(false)
     }
-
+    
     getInitialSession()
 
     return () => {
@@ -33,14 +33,13 @@ export default function AuthButton() {
   }, [supabase])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh(); // Force a refresh to update server components
+    await supabase.auth.signOut();
+    window.location.reload();
   }
 
-  // We won't render anything until the session is loaded
+  // A placeholder to prevent layout shift while session is loading
   if (loading) {
-    return <div className="w-[88px] h-[40px]"></div> // A placeholder with a fixed size to prevent layout shift
+    return <div className="w-[88px] h-[40px]"></div>
   }
 
   return user ? (
