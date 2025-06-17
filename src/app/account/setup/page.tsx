@@ -1,7 +1,8 @@
-// src/app/account/setup/page.tsx
-import AccountForm from './AccountForm'
-
-export default function AccountPage() {
-  // This page now only renders the form component.
-  return <AccountForm />
+export default function AccountSetupPage() {
+  return (
+    <div className="w-full max-w-6xl mx-auto px-6 py-12">
+      <h1 className="text-3xl font-bold mb-8">Complete Your Profile</h1>
+      <p>This page is ready to be built.</p>
+    </div>
+  );
 }
