@@ -34,8 +34,7 @@ export default function AccountForm() {
         .single()
 
       if (error && status !== 406) {
-        // Now we are using the 'error' variable
-        console.error('Error loading user data:', error)
+        console.error("Error loading user data:", error)
       }
 
       if (data) {
@@ -43,7 +42,7 @@ export default function AccountForm() {
         setUsername(data.username)
         setWebsite(data.website)
       }
-    } catch (error) {
+    } catch { // <-- THIS IS THE FIX
       alert('An error occurred while fetching your profile.')
     } finally {
       setLoading(false)
