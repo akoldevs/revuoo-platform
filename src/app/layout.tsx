@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
-import AuthListener from '@/components/AuthListener' // <-- 1. IMPORT
+import Footer from '@/components/Footer' // <-- 1. IMPORT
+import AuthProvider from '@/components/AuthProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,10 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AuthListener /> {/* <-- 2. ADD THE LISTENER */}
-        <Header />
-        <main>{children}</main>
+      <body className="flex flex-col min-h-screen"> {/* <-- Add flex classes */}
+        <AuthProvider>
+          <Header />
+          <main className="flex-grow">{children}</main> {/* <-- Add flex-grow */}
+          <Footer /> {/* <-- 2. ADD THE FOOTER */}
+        </AuthProvider>
       </body>
     </html>
   )

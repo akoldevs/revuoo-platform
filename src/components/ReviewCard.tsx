@@ -1,15 +1,14 @@
 // src/components/ReviewCard.tsx
 import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 
-// Define the shape of the review data we expect
 interface Review {
   id: number;
   title: string;
   category: string | null;
-  rating: number | null;
+  overall_rating: number | null;
 }
 
-// Define the props for our component
 interface ReviewCardProps {
   review: Review;
 }
@@ -17,20 +16,26 @@ interface ReviewCardProps {
 export default function ReviewCard({ review }: ReviewCardProps) {
   return (
     <Link href={`/reviews/${review.id}`}>
-      <div className="border rounded-lg p-4 h-full hover:shadow-lg transition-shadow duration-200">
-        <h3 className="font-bold text-lg mb-2">{review.title}</h3>
-        {review.category && (
-          <p className="text-sm text-gray-600 mb-2">Category: {review.category}</p>
-        )}
-        <div className="flex items-center">
-          {review.rating && (
-            <>
-              <span className="text-yellow-500">★★★★★</span>
-              <span className="text-xs text-gray-500 ml-2">({review.rating})</span>
-            </>
+      <Card className="h-full hover:border-black transition-all">
+        <CardHeader>
+          <CardTitle>{review.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {review.category && (
+            <p className="text-sm text-gray-600">Category: {review.category}</p>
           )}
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter>
+          <div className="flex items-center">
+            {review.overall_rating && (
+              <>
+                <span className="text-yellow-500">★★★★★</span>
+                <span className="text-xs text-gray-500 ml-2">({review.overall_rating})</span>
+              </>
+            )}
+          </div>
+        </CardFooter>
+      </Card>
     </Link>
   );
 }
