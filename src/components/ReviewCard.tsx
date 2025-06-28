@@ -15,7 +15,7 @@ interface ReviewCardProps {
 
 export default function ReviewCard({ review }: ReviewCardProps) {
   return (
-    <Link href={`/reviews/${review.id}`}>
+    <Link href={`/reviews/${review.id}`} legacyBehavior>
       <Card className="h-full hover:border-black transition-all">
         <CardHeader>
           <CardTitle>{review.title}</CardTitle>

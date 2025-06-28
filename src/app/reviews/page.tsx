@@ -1,28 +1,16 @@
 // src/app/reviews/page.tsx
-
-export const dynamic = 'force-dynamic'
-
 import { createClient } from '@/lib/supabase/server'
 import ReviewCard from '@/components/ReviewCard'
 
+// We add this to ensure the page is always dynamic and avoids rendering errors
+export const dynamic = 'force-dynamic'
+
 export default async function ReviewsPage() {
-  const supabase = await createClient()
-  
-  // We add .eq('status', 'approved') to only fetch approved reviews
-  const { data: reviews, error } = await supabase
+  const supabase = createClient()
+  const { data: reviews } = await supabase
     .from('reviews')
     .select('*')
-    .eq('status', 'approved') 
-
-  if (error) {
-    console.error('Error fetching reviews:', error.message)
-    return (
-      <div className="w-full max-w-6xl mx-auto px-6 py-12 text-center">
-        <h1 className="text-3xl font-bold mb-8">Explore All Reviews</h1>
-        <p className="text-red-500">Sorry, we couldn't load the reviews at this time.</p>
-      </div>
-    )
-  }
+    .eq('status', 'approved') // Only show approved reviews
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-12">
@@ -35,7 +23,7 @@ export default async function ReviewsPage() {
           ))}
         </div>
       ) : (
-        <p>No approved reviews have been written yet. Be the first!</p>
+        <p>No approved reviews have been written yet.</p>
       )}
     </div>
   )

@@ -44,14 +44,12 @@ export default async function BusinessDashboardPage() {
           <h2 className="text-xl text-gray-600">Managing: {business.name}</h2>
         </div>
         {/* --- NEW PART --- */}
-        <Link href="/dashboard/business/edit">
+        <Link href="/dashboard/business/edit" legacyBehavior>
           <Button variant="outline">Edit Profile</Button>
         </Link>
         {/* --- END OF NEW PART --- */}
       </div>
-
       <h3 className="text-2xl font-semibold border-b pb-4 mb-6">Reviews for Your Business</h3>
-      
       <div className="space-y-8">
         {reviews && reviews.length > 0 ? (
           reviews.map((review) => (
