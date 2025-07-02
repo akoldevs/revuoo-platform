@@ -1,78 +1,28 @@
 // src/components/Header.tsx
-'use client'
-
-import Link from 'next/link'
-import AuthButton from './AuthButton'
-import { useState } from 'react'
-import * as React from 'react'
-import { cn } from '@/lib/utils'
-
-// Import all necessary shadcn/ui components
+import Link from 'next/link';
+import AuthButton from './AuthButton';
+import { createClient } from '@/lib/supabase/server';
+import { Button } from './ui/button';
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CircleUser, LifeBuoy, LogOut, PanelTop, Star, User } from 'lucide-react';
 
-// This is a helper component for displaying items within the mega menu
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, href, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <Link
-          href={href!}
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
-  )
-})
-ListItem.displayName = "ListItem"
+export default async function Header() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-
-export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const handleLinkClick = () => setIsMenuOpen(false)
-
-  const categories: { title: string; href: string; description: string }[] = [
-    {
-      title: "Cleaning Services",
-      href: "/categories/cleaning-services",
-      description: "Find top-rated residential and commercial cleaning professionals.",
-    },
-    {
-      title: "Handyman Services",
-      href: "/categories/handyman-services",
-      description: "For all your small repairs and odd jobs around the house.",
-    },
-    {
-      title: "Moving Services",
-      href: "/categories/moving-services",
-      description: "Get help from reliable and efficient moving companies.",
-    },
-     {
-      title: "All Categories",
-      href: "/categories",
-      description: "Browse all available service and product categories.",
-    },
-  ]
+  // Fetch user profile/role data if the user is logged in
+  const { data: profile } = user ? await supabase
+    .from('users')
+    .select('full_name, role')
+    .eq('id', user.id)
+    .single() : { data: null };
 
   return (
     <header className="w-full border-b border-b-foreground/10 h-16 sticky top-0 bg-white z-20">
@@ -82,85 +32,63 @@ export default function Header() {
           Revuoo
         </Link>
 
-        {/* Middle: Desktop Navigation using the correct 'asChild' pattern */}
-        <div className="hidden md:flex flex-grow justify-center">
-          <NavigationMenu>
-            <NavigationMenuList>
-
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/reviews">Reviews</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/blog">Guides & Insights</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
-              {/* --- THIS IS THE MEGA MENU --- */}
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>Categories</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                    {categories.map((component) => (
-                      <ListItem
-                        key={component.title}
-                        title={component.title}
-                        href={component.href}
-                      >
-                        {component.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-              {/* --- END OF MEGA MENU --- */}
-
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/write">Write for Us</Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-
-
-        {/* Right Side */}
+        {/* --- Middle Navigation --- */}
+        {/* Note: In a future step, we can make this mega menu dynamic */}
+        <nav className="hidden md:flex flex-grow justify-center">
+            <Link href="/reviews" className="px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md">Reviews</Link>
+            <Link href="/blog" className="px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md">Guides & Insights</Link>
+            <Link href="/categories" className="px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md">Categories</Link>
+            <Link href="/write-a-review" className="px-3 py-2 text-sm font-medium hover:bg-gray-100 rounded-md">Write a Review</Link>
+        </nav>
+        
+        {/* --- Right Side: User Menu or Login Button --- */}
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="relative">
+                   {profile?.full_name || user.email}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{profile?.full_name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                   <Link href="/dashboard/my-reviews"><Star className="mr-2 h-4 w-4" /><span>My Reviews</span></Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link href="/dashboard/account"><User className="mr-2 h-4 w-4" /><span>My Account</span></Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                
+                {/* --- Conditional Admin Link --- */}
+                {profile?.role === 'admin' && (
+                  <DropdownMenuItem asChild>
+                     <Link href="/admin"><PanelTop className="mr-2 h-4 w-4" /><span>Admin Dashboard</span></Link>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuItem asChild>
+                   <Link href="/support"><LifeBuoy className="mr-2 h-4 w-4" /><span>Support</span></Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <form action="/auth/sign-out" method="post">
+                   <DropdownMenuItem asChild>
+                      <button className="w-full"><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></button>
+                   </DropdownMenuItem>
+                </form>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
             <AuthButton />
-          </div>
-          <button
-            className="md:hidden p-2 rounded-md"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {/* Hamburger Icon SVG */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-white shadow-lg z-10">
-          <nav className="flex flex-col items-start space-y-2 p-4">
-            <Link href="/reviews" className="p-2 w-full rounded-md hover:bg-gray-100" onClick={handleLinkClick}>Reviews</Link>
-            <Link href="/blog" className="p-2 w-full rounded-md hover:bg-gray-100" onClick={handleLinkClick}>Guides & Insights</Link>
-            <Link href="/categories" className="p-2 w-full rounded-md hover:bg-gray-100" onClick={handleLinkClick}>Categories</Link>
-            <Link href="/write" className="p-2 w-full rounded-md hover:bg-gray-100" onClick={handleLinkClick}>Write for Us</Link>
-            <div className="border-t w-full pt-4 mt-2">
-              <AuthButton />
-            </div>
-          </nav>
-        </div>
-      )}
     </header>
-  )
+  );
 }

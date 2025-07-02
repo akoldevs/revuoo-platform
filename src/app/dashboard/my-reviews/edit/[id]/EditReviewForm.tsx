@@ -1,89 +1,82 @@
 // src/app/dashboard/my-reviews/edit/[id]/EditReviewForm.tsx
 'use client'
 
-import { updateReview } from '../../actions'
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { updateReview } from '../../actions'; // <-- IMPORT our update action
 
-// This form will receive the review data as a prop
-export default function EditReviewForm({ review }: { review: any }) {
-
+function AspectRating({ label, name, defaultValue }: { label: string, name: string, defaultValue: number | null }) {
   return (
-    <form action={updateReview} className="space-y-6">
-      {/* We need a hidden input to pass the review's ID to the action */}
-      <input type="hidden" name="reviewId" value={review.id} />
-
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium">Review Title</label>
-        <input
-          id="title"
-          name="title"
-          type="text"
-          required
-          // Pre-fill the form with existing data
-          defaultValue={review.title}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        />
+    <div className="grid grid-cols-3 items-center gap-4">
+      <Label htmlFor={name} className="text-right">
+        {label}
+      </Label>
+      <div className="col-span-2">
+        <Select name={name} defaultValue={defaultValue?.toString()}>
+          <SelectTrigger id={name}>
+            <SelectValue placeholder="Select a rating" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5">5 - Excellent</SelectItem>
+            <SelectItem value="4">4 - Good</SelectItem>
+            <SelectItem value="3">3 - Average</SelectItem>
+            <SelectItem value="2">2 - Poor</SelectItem>
+            <SelectItem value="1">1 - Terrible</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+    </div>
+  );
+}
 
-      <div>
-        <label htmlFor="summary" className="block text-sm font-medium">Summary / Body</label>
-        <textarea
-          id="summary"
-          name="summary"
-          required
-          rows={6}
-          // Pre-fill the form with existing data
-          defaultValue={review.summary || ''}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        />
-      </div>
+export default function EditReviewForm({ review }: { review: any }) {
+  return (
+     <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-3xl">Edit Your Review</CardTitle>
+        <CardDescription>
+          Make changes to your review below and save.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* The form now calls our updateReview server action */}
+        <form action={updateReview} className="space-y-8">
+          <input type="hidden" name="reviewId" value={review.id} />
 
-      <div>
-        <label htmlFor="serviceDate" className="block text-sm font-medium">Date of Service</label>
-        <input
-          id="serviceDate"
-          name="serviceDate"
-          type="date"
-          required
-          // Pre-fill the form with existing data
-          defaultValue={review.service_date}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-        />
-      </div>
-
-      <hr />
-
-      <h2 className="text-xl font-semibold">Aspect Ratings (1-5)</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          { label: 'Overall Rating', name: 'overallRating', value: review.overall_rating },
-          { label: 'Quality of Cleaning', name: 'quality', value: review.quality },
-          { label: 'Staff Professionalism', name: 'professionalism', value: review.professionalism },
-          { label: 'Punctuality & Reliability', name: 'punctuality', value: review.punctuality },
-          { label: 'Booking & Communication', name: 'communication', value: review.communication },
-          { label: 'Value for Money', name: 'value', value: review.value },
-        ].map(aspect => (
-          <div key={aspect.name}>
-            <label className="block text-sm font-medium">{aspect.label}</label>
-            <input
-              name={aspect.name}
-              type="number" min="1" max="5" step="0.5"
-              required
-              // Pre-fill the form with existing data
-              defaultValue={aspect.value || 3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Your Review</h3>
+            <div className="space-y-2">
+              <Label htmlFor="review-title">Review Title</Label>
+              <Input name="title" id="review-title" defaultValue={review.title} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="review-summary">Your Full Review</Label>
+              <Textarea name="summary" id="review-summary" defaultValue={review.summary || ''} rows={6} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="service-date">Date of Service</Label>
+               <Input name="service_date" id="service-date" type="date" defaultValue={review.service_date} />
+            </div>
           </div>
-        ))}
-      </div>
 
-      <hr />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Breakdown Your Rating</h3>
+             <div className="space-y-4 rounded-md border p-4">
+                <AspectRating label="Quality" name="quality" defaultValue={review.quality} />
+                <AspectRating label="Professionalism" name="professionalism" defaultValue={review.professionalism} />
+                <AspectRating label="Punctuality" name="punctuality" defaultValue={review.punctuality} />
+                <AspectRating label="Communication" name="communication" defaultValue={review.communication} />
+                <AspectRating label="Value" name="value" defaultValue={review.value} />
+             </div>
+          </div>
 
-      <button
-        type="submit"
-        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700"
-      >
-        Update Review
-      </button>
-    </form>
-  )
+          <Button type="submit" size="lg" className="w-full">Save Changes</Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
 }

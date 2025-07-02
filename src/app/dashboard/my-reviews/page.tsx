@@ -1,63 +1,107 @@
 // src/app/dashboard/my-reviews/page.tsx
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { deleteReview } from './actions' // <-- 1. Import our new action
+import { createClient } from '@/lib/supabase/server';
+import { notFound, redirect } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import Link from 'next/link';
+import { Edit, Trash2 } from 'lucide-react';
+import { deleteReview } from './actions'; // Import our new delete action
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
+
+const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  switch (status) {
+    case 'approved':
+      return 'default';
+    case 'pending':
+      return 'secondary';
+    case 'rejected':
+      return 'destructive';
+    default:
+      return 'outline';
+  }
+};
 
 export default async function MyReviewsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
-
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return redirect('/login?message=You must be logged in to view your reviews')
+    redirect('/login?message=You must be logged in to view this page.');
   }
 
-  const { data: reviews } = await supabase
+  const { data: reviews, error } = await supabase
     .from('reviews')
-    .select('*')
+    .select(`
+      id, created_at, title, overall_rating, status,
+      businesses ( name, slug )
+    `)
     .eq('author_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user's reviews:", error);
+  }
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-2">My Reviews</h1>
-      <p className="text-gray-600 mb-8">Manage all the reviews you've submitted.</p>
+    <div className="w-full max-w-6xl mx-auto px-6 py-12">
+      <div className="border-b pb-6 mb-8">
+        <h1 className="text-4xl font-bold">My Reviews</h1>
+        <p className="mt-2 text-lg text-gray-600">Manage all the reviews you've submitted.</p>
+      </div>
 
       <div className="space-y-6">
         {reviews && reviews.length > 0 ? (
           reviews.map((review) => (
-            <div key={review.id} className="border rounded-lg p-4 flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-xl">{review.title}</h3>
+            <Card key={review.id} className="w-full">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between md:items-start gap-2">
+                  <div>
+                    <CardTitle className="text-xl">{review.title}</CardTitle>
+                    <CardDescription className="pt-1">
+                      For: <Link href={`/business/${review.businesses?.slug}`} className="font-semibold text-indigo-600 hover:underline">{review.businesses?.name}</Link>
+                    </CardDescription>
+                  </div>
+                  <Badge variant={getStatusVariant(review.status)} className="w-fit">
+                    {review.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="flex justify-between items-center">
                 <p className="text-sm text-gray-500">
-                  Submitted on {new Date(review.created_at).toLocaleDateString()}
+                  Submitted on {format(new Date(review.created_at), 'MMM d, yyyy')}
                 </p>
-              </div>
-              <div className="flex gap-4">
-                {/* The Edit button is not functional yet */}
-                <Link href={`/dashboard/my-reviews/edit/${review.id}`} className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-md">
-                    Edit
-                </Link>
-
-                {/* 2. Wrap the Delete button in a form that calls our action */}
-                <form action={deleteReview}>
-                  {/* 3. Add a hidden input to pass the review's ID */}
-                  <input type="hidden" name="reviewId" value={review.id} />
-                  <button type="submit" className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 py-2 px-4 rounded-md">
-                    Delete
-                  </button>
-                </form>
-
-              </div>
-            </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+  <Link href={`/dashboard/my-reviews/edit/${review.id}`}>
+    <Edit className="h-4 w-4 mr-2" />
+    Edit
+  </Link>
+</Button>
+                  {/* This form wraps the delete button to call the server action */}
+                  <form action={deleteReview}>
+                    <input type="hidden" name="reviewId" value={review.id} />
+                    <Button type="submit" variant="destructive" size="sm">
+                       <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </form>
+                </div>
+              </CardContent>
+            </Card>
           ))
         ) : (
-          <p>You haven't written any reviews yet.</p>
+          <div className="text-center py-16 bg-gray-50 rounded-lg">
+            <h3 className="text-xl font-semibold">You haven't written any reviews yet.</h3>
+            <p className="text-gray-600 mt-2 mb-4">Share your experience to help the community.</p>
+            <Button asChild>
+              <Link href="/write">Write Your First Review</Link>
+            </Button>
+          </div>
         )}
       </div>
     </div>
-  )
+  );
 }

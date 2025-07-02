@@ -1,11 +1,20 @@
 // src/app/page.tsx
+import Hero from "@/components/Hero";
+import CategoryShowcase from "@/components/CategoryShowcase";
+import TrendingReviews from "@/components/TrendingReviews";
+import LatestGuides from "@/components/LatestGuides";
+import TrustSection from "@/components/TrustSection";
+import CtaSection from "@/components/CtaSection";
+
 export default function HomePage() {
   return (
-    <main className="flex flex-col items-center p-24">
-      <h1 className="text-4xl font-bold">Welcome to Revuoo</h1>
-      <p className="mt-4 text-lg text-gray-600">
-        Discover. Review. Decide – Smarter.
-      </p>
+    <main>
+      <Hero />
+      <CategoryShowcase />
+      <TrendingReviews />
+      <LatestGuides />
+      <TrustSection />
+      <CtaSection />
     </main>
   );
 }

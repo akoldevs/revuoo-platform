@@ -1,30 +1,51 @@
 // src/app/reviews/page.tsx
-import { createClient } from '@/lib/supabase/server'
-import ReviewCard from '@/components/ReviewCard'
+import Link from 'next/link';
+import { fetchMoreReviews } from './actions'; // Import our new action
+import LoadMoreReviews from '@/components/LoadMoreReviews'; // Import our new component
 
-// We add this to ensure the page is always dynamic and avoids rendering errors
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
-export default async function ReviewsPage() {
-  const supabase = createClient()
-  const { data: reviews } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('status', 'approved') // Only show approved reviews
+export default async function ReviewsPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const sortOrder = (searchParams.sort as string) || 'newest';
+
+  // Fetch only the FIRST page of reviews initially
+  const initialReviews = await fetchMoreReviews(1, sortOrder);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">Explore All Reviews</h1>
-
-      {reviews && reviews.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review as any} />
-          ))}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b pb-6 mb-8">
+        <div>
+          <h1 className="text-4xl font-bold">Explore All Reviews</h1>
+          <p className="mt-2 text-lg text-gray-600">Discover authentic experiences from our community.</p>
         </div>
+        
+        <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Sort by:</span>
+            <Link 
+              href={`/reviews?sort=newest`} 
+              className={`px-3 py-1 text-sm rounded-full ${sortOrder === 'newest' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+            >
+              Newest
+            </Link>
+            <Link 
+              href={`/reviews?sort=highest_rated`}
+              className={`px-3 py-1 text-sm rounded-full ${sortOrder === 'highest_rated' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+            >
+              Highest Rated
+            </Link>
+        </div>
+      </div>
+
+      {initialReviews.length > 0 ? (
+        // The LoadMoreReviews component now handles displaying the grid and the button
+        <LoadMoreReviews initialReviews={initialReviews} sortOrder={sortOrder} />
       ) : (
-        <p>No approved reviews have been written yet.</p>
+        <p className="text-center py-10 text-gray-500">No approved reviews have been written yet.</p>
       )}
     </div>
-  )
+  );
 }

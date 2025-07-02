@@ -2,7 +2,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export const createClient = () => {
+// This is now an async function
+export const createClient = async () => {
+  // We now await the cookies() call
   const cookieStore = cookies()
 
   return createServerClient(
@@ -16,15 +18,17 @@ export const createClient = () => {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options })
-          } catch {
-            // This is ignored in Server Components
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+            // This can be ignored.
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
-          } catch {
-            // This is ignored in Server Components
+          } catch (error) {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored.
           }
         },
       },
