@@ -1,3 +1,4 @@
 {
-  "extends": "./tsconfig.vercel.json"
+  "extends": "./tsconfig.vercel.json",
+  "compilerOptions": {}
 }
