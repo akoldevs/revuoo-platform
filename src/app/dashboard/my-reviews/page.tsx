@@ -1,6 +1,6 @@
 // src/app/dashboard/my-reviews/page.tsx
 import { createClient } from '@/lib/supabase/server';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation'; // Removed notFound import
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,14 +42,14 @@ export default async function MyReviewsPage() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error fetching user's reviews:", error);
+    console.error("Error fetching user&apos;s reviews:", error);
   }
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-12">
       <div className="border-b pb-6 mb-8">
         <h1 className="text-4xl font-bold">My Reviews</h1>
-        <p className="mt-2 text-lg text-gray-600">Manage all the reviews you've submitted.</p>
+        <p className="mt-2 text-lg text-gray-600">Manage all the reviews you&apos;ve submitted.</p>
       </div>
 
       <div className="space-y-6">
@@ -75,11 +75,11 @@ export default async function MyReviewsPage() {
                 </p>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" asChild>
-  <Link href={`/dashboard/my-reviews/edit/${review.id}`}>
-    <Edit className="h-4 w-4 mr-2" />
-    Edit
-  </Link>
-</Button>
+                    <Link href={`/dashboard/my-reviews/edit/${review.id}`}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Link>
+                  </Button>
                   {/* This form wraps the delete button to call the server action */}
                   <form action={deleteReview}>
                     <input type="hidden" name="reviewId" value={review.id} />
@@ -94,7 +94,7 @@ export default async function MyReviewsPage() {
           ))
         ) : (
           <div className="text-center py-16 bg-gray-50 rounded-lg">
-            <h3 className="text-xl font-semibold">You haven't written any reviews yet.</h3>
+            <h3 className="text-xl font-semibold">You haven&apos;t written any reviews yet.</h3>
             <p className="text-gray-600 mt-2 mb-4">Share your experience to help the community.</p>
             <Button asChild>
               <Link href="/write">Write Your First Review</Link>

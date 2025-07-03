@@ -27,15 +27,30 @@ export async function GET() {
     // If successful, return the data
     return NextResponse.json({ message: 'Successfully connected to Supabase and fetched data.', data: data })
 
-  } catch (error: any) {
-    // If any error occurs in the process, return a detailed error message
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    let details: string | undefined = undefined;
+    let code: string | undefined = undefined;
+
+    if (error && typeof error === 'object') {
+      if ('message' in error && typeof (error as any).message === 'string') {
+        message = (error as any).message;
+      }
+      if ('details' in error && typeof (error as any).details === 'string') {
+        details = (error as any).details;
+      }
+      if ('code' in error && typeof (error as any).code === 'string') {
+        code = (error as any).code;
+      }
+    }
+
     return NextResponse.json(
       { 
         message: 'An error occurred during the test.', 
         error: {
-          message: error.message,
-          details: error.details,
-          code: error.code,
+          message,
+          details,
+          code,
         } 
       }, 
       { status: 500 }

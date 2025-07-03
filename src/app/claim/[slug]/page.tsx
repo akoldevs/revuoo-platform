@@ -28,8 +28,12 @@ export default async function ClaimBusinessPage({ params }: { params: { slug: st
     return (
       <div className="w-full max-w-2xl mx-auto px-6 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Profile Already Claimed</h1>
-        <p>This business profile for "{business.name}" has already been claimed.</p>
-        <p className="mt-2 text-sm text-gray-600">If you believe this is an error, please contact our support team.</p>
+        <p>
+          This business profile for &quot;{business.name}&quot; has already been claimed.
+        </p>
+        <p className="mt-2 text-sm text-gray-600">
+          If you believe this is an error, please contact our support team.
+        </p>
       </div>
     )
   }
@@ -41,7 +45,9 @@ export default async function ClaimBusinessPage({ params }: { params: { slug: st
       <div className="bg-gray-100 p-6 rounded-lg mb-8">
         <p className="text-2xl font-semibold">{business.name}</p>
       </div>
-      <p className="text-sm mb-8">By clicking "Confirm Claim", you verify that you are the owner or an authorized representative of this business.</p>
+      <p className="text-sm mb-8">
+        By clicking &quot;Confirm Claim&quot;, you verify that you are the owner or an authorized representative of this business.
+      </p>
 
       <form action={claimBusiness}>
         <input type="hidden" name="businessId" value={business.id} />

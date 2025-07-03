@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { uploadPhoto, deletePhoto } from './actions'; // <-- Import deletePhoto action
-import { GalleryHorizontal, Trash2 } from 'lucide-react'; // <-- Import Trash2 icon
+import { Trash2 } from 'lucide-react'; // <-- Removed unused GalleryHorizontal import
 
 export const dynamic = 'force-dynamic';
 

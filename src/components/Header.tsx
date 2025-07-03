@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleUser, LifeBuoy, LogOut, PanelTop, Star, User } from 'lucide-react';
+import { LifeBuoy, LogOut, PanelTop, Star, User } from 'lucide-react'; // Removed CircleUser
 
 export default async function Header() {
   const supabase = await createClient();

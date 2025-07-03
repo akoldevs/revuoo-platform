@@ -31,7 +31,7 @@ export default async function TrendingReviews() {
     <div className="bg-gray-50 py-24 sm:py-32">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">What's Trending on Revuoo</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">What&apos;s Trending on Revuoo</h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">See what services and products are getting noticed. Here are some of the latest high-quality reviews from our community and experts.</p>
         </div>
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">

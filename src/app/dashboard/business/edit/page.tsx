@@ -1,7 +1,7 @@
 // src/app/dashboard/business/edit/page.tsx
 import { createClient } from '@/lib/supabase/server';
-import { notFound, redirect } from 'next/navigation';
-import EditBusinessForm from './EditBusinessForm'; // We will create this next
+import { redirect } from 'next/navigation'; // Removed notFound import
+import EditBusinessForm from './EditBusinessForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +16,7 @@ export default async function EditBusinessPage() {
   // Fetch the full business profile for the logged-in user
   const { data: business } = await supabase
     .from('businesses')
-    .select('*') // Select all columns this time
+    .select('*')
     .eq('owner_id', user.id)
     .single();
 

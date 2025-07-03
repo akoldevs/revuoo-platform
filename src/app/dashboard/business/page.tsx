@@ -42,7 +42,7 @@ export default async function BusinessDashboardPage() {
       <div className="w-full max-w-4xl mx-auto px-6 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">No Business Profile Found</h1>
         <p>Your account is not associated with a business profile.</p>
-        <p className="mt-2 text-sm text-gray-600">Please find your business on Revuoo and use the "Claim Profile" button.</p>
+        <p className="mt-2 text-sm text-gray-600">Please find your business on Revuoo and use the &quot;Claim Profile&quot; button.</p>
         <Button asChild className="mt-4">
           <Link href="/reviews">Explore Businesses</Link>
         </Button>
@@ -90,7 +90,7 @@ export default async function BusinessDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="italic">"{review.summary}"</p>
+                <p className="italic">&quot;{review.summary}&quot;</p>
               </CardContent>
               <CardContent>
                  <h4 className="font-semibold mb-2">Leave a Public Response</h4>

@@ -7,15 +7,15 @@ import { notFound } from 'next/navigation';
 
 // This is a helper function to generate image URLs from Sanity data
 const builder = imageUrlBuilder(client);
-function urlFor(source: any) {
+function urlFor(source: unknown) {
   return builder.image(source);
 }
 
 // Define the type for our article data from Sanity
 interface Article {
   title: string;
-  mainImage: any;
-  body: any[]; // Portable Text content
+  mainImage: unknown;
+  body: unknown[]; // Portable Text content
 }
 
 // This function tells Next.js to fetch the data for a specific post
@@ -26,7 +26,7 @@ async function getPost(slug: string) {
     body
   }`;
 
-  const post = await client.fetch(query, { slug });
+  const post: Article = await client.fetch(query, { slug });
   return post;
 }
 

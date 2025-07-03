@@ -30,7 +30,7 @@ export default function AiSynthesisCard({ synthesis }: { synthesis: AiSynthesis 
           <div>
             <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsUp className="h-4 w-4 text-green-600"/> Common Pros</h4>
             <div className="flex flex-wrap gap-2">
-              {synthesis.common_themes_pros.map((pro: any) => (
+              {synthesis.common_themes_pros.map((pro: string) => (
                 <Badge key={pro} className="bg-green-100 text-green-800 hover:bg-green-200">
                   {pro}
                 </Badge>
@@ -43,7 +43,7 @@ export default function AiSynthesisCard({ synthesis }: { synthesis: AiSynthesis 
           <div>
             <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsDown className="h-4 w-4 text-red-600"/> Common Cons</h4>
             <div className="flex flex-wrap gap-2">
-              {synthesis.common_themes_cons.map((con: any) => (
+              {synthesis.common_themes_cons.map((con: string) => (
                 <Badge key={con} variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-200">
                   {con}
                 </Badge>
@@ -54,7 +54,7 @@ export default function AiSynthesisCard({ synthesis }: { synthesis: AiSynthesis 
 
         <div>
           <h4 className="font-semibold mb-2">Generated Summary</h4>
-          <p className="text-gray-700 italic">"{synthesis.generated_summary}"</p>
+          <p className="text-gray-700 italic">&quot;{synthesis.generated_summary}&quot;</p>
         </div>
       </CardContent>
     </Card>

@@ -18,7 +18,6 @@ export default function WritePage() {
   const router = useRouter(); // <-- Initialize the router
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<BusinessSearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -26,11 +25,8 @@ export default function WritePage() {
       setSearchResults([]);
       return;
     }
-    setIsLoading(true);
-    // We need to update our action to also return the slug
     const results = await searchBusinesses(query); 
     setSearchResults(results);
-    setIsLoading(false);
   };
 
   // When a user selects a business, we navigate them to the next step
@@ -45,7 +41,7 @@ export default function WritePage() {
           Share your experience
         </h1>
         <p className="mt-4 text-lg text-gray-600">
-          Help others make the right choice by leaving a review for a business you've used.
+          Help others make the right choice by leaving a review for a business you&apos;ve used.
         </p>
 
         {/* --- The Focused Search Bar --- */}

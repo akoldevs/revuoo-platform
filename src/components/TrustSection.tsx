@@ -29,7 +29,7 @@ export default function TrustSection() {
             Everything You Need to Decide with Confidence
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Revuoo was built on a foundation of trust and transparency. We provide the tools and information you need to make choices you won't regret.
+            Revuoo was built on a foundation of trust and transparency. We provide the tools and information you need to make choices you won&apos;t regret.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">

@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 // This is a helper function to generate image URLs from Sanity data
 const builder = imageUrlBuilder(client);
-function urlFor(source: any) {
+function urlFor(source: unknown) {
   return builder.image(source);
 }
 
@@ -19,7 +19,7 @@ interface Article {
   slug: {
     current: string;
   };
-  mainImage: any;
+  mainImage: unknown;
   categories: {
     title: string;
   }[];

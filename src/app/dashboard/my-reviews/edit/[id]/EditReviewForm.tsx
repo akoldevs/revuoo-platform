@@ -33,9 +33,23 @@ function AspectRating({ label, name, defaultValue }: { label: string, name: stri
   );
 }
 
-export default function EditReviewForm({ review }: { review: any }) {
+// Define a type for the review prop
+type Review = {
+  id: number;
+  title: string;
+  summary: string;
+  service_date: string;
+  quality: number | null;
+  professionalism: number | null;
+  punctuality: number | null;
+  communication: number | null;
+  value: number | null;
+  // Add any other fields your review object may have
+};
+
+export default function EditReviewForm({ review }: { review: Review }) {
   return (
-     <Card className="w-full">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-3xl">Edit Your Review</CardTitle>
         <CardDescription>

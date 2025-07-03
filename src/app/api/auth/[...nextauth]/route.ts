@@ -9,7 +9,7 @@ const handler = NextAuth({
     CredentialsProvider({
       name: 'Supabase',
       credentials: {},
-      async authorize(credentials: any) {
+      async authorize(credentials: Record<string, unknown>) {
         // When we call signIn('credentials', ...), the user object
         // we pass will be available here. We just need to return it.
         if (credentials.user) {

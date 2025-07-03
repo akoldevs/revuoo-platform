@@ -11,8 +11,20 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
+// Define types for operating hours
+type OperatingHour = { open: string; close: string; is_closed: boolean };
+type OperatingHours = { [day: string]: OperatingHour };
+
 // A new sub-component to manage the schedule for a single day
-function DaySchedule({ day, hours, setHours }: { day: string, hours: any, setHours: Function }) {
+function DaySchedule({
+  day,
+  hours,
+  setHours,
+}: {
+  day: string;
+  hours: OperatingHours;
+  setHours: React.Dispatch<React.SetStateAction<OperatingHours>>;
+}) {
   const dayKey = day.toLowerCase();
   const isClosed = hours[dayKey]?.is_closed || false;
 

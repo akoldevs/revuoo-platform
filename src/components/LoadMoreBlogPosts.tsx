@@ -14,7 +14,7 @@ interface Article {
   slug: {
     current: string;
   };
-  mainImage: any;
+  mainImage: unknown; // <-- Changed from any to unknown
   categories: {
     title: string;
   }[];
