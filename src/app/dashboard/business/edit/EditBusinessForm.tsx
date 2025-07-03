@@ -74,12 +74,27 @@ function DaySchedule({
   );
 }
 
-export default function EditBusinessForm({ business }: { business: any }) {
+// Define a type for the business prop
+type Business = {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  address?: string;
+  phone_number?: string;
+  website_url?: string;
+  business_email?: string;
+  services?: string[];
+  operating_hours?: OperatingHours;
+  // Add any other fields as needed
+};
+
+export default function EditBusinessForm({ business }: { business: Business }) {
   const [services, setServices] = useState<string[]>(business.services || []);
   const [currentService, setCurrentService] = useState('');
   
   // --- NEW: State management for operating hours ---
-  const [operatingHours, setOperatingHours] = useState(business.operating_hours || {});
+  const [operatingHours, setOperatingHours] = useState<OperatingHours>(business.operating_hours || {});
 
   const handleAddService = () => {
     if (currentService && !services.includes(currentService)) {
@@ -129,7 +144,7 @@ export default function EditBusinessForm({ business }: { business: any }) {
           <Input placeholder="e.g., Deep Cleaning" value={currentService} onChange={(e) => setCurrentService(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddService(); }}}/>
           <Button type="button" onClick={handleAddService}>Add Service</Button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">Type a service and click "Add" or press Enter.</p>
+        <p className="text-xs text-gray-500 mt-2">Type a service and click &quot;Add&quot; or press Enter.</p>
       </div>
 
       {/* --- NEW: Operating Hours Section --- */}

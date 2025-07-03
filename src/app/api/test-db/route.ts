@@ -33,14 +33,14 @@ export async function GET() {
     let code: string | undefined = undefined;
 
     if (error && typeof error === 'object') {
-      if ('message' in error && typeof (error as any).message === 'string') {
-        message = (error as any).message;
+      if ('message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        message = (error as { message?: string }).message as string;
       }
-      if ('details' in error && typeof (error as any).details === 'string') {
-        details = (error as any).details;
+      if ('details' in error && typeof (error as { details?: unknown }).details === 'string') {
+        details = (error as { details?: string }).details as string;
       }
-      if ('code' in error && typeof (error as any).code === 'string') {
-        code = (error as any).code;
+      if ('code' in error && typeof (error as { code?: unknown }).code === 'string') {
+        code = (error as { code?: string }).code as string;
       }
     }
 

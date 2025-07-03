@@ -18,6 +18,33 @@ const getSafetyBadgeVariant = (status: string | undefined): "default" | "destruc
     }
 };
 
+type PendingReview = {
+  id: number;
+  title: string;
+  summary: string;
+  created_at: string;
+  businesses?: { name?: string };
+  profiles?: { full_name?: string };
+  review_ai_analysis?: {
+    safety_rating?: string;
+    reasoning?: string;
+    sentiment?: string;
+    summary?: string;
+  } | Array<{
+    safety_rating?: string;
+    reasoning?: string;
+    sentiment?: string;
+    summary?: string;
+  }>;
+};
+
+type PendingResponse = {
+  id: number;
+  response_text: string;
+  businesses?: { name?: string };
+  reviews?: { title?: string };
+};
+
 export default async function AdminPage() {
   const supabase = await createClient();
 
@@ -43,7 +70,7 @@ export default async function AdminPage() {
       <div className="mt-8 space-y-6">
         <h2 className="text-2xl font-semibold">Pending Reviews ({pendingReviews?.length || 0})</h2>
         {pendingReviews && pendingReviews.length > 0 ? (
-          pendingReviews.map((review: any) => {
+          pendingReviews.map((review: PendingReview) => {
             const aiAnalysis = Array.isArray(review.review_ai_analysis) ? review.review_ai_analysis[0] : review.review_ai_analysis;
             return (
               <Card key={`review-${review.id}`} className="bg-white border-yellow-400">
@@ -81,7 +108,7 @@ export default async function AdminPage() {
       <div className="mt-12 pt-8 border-t space-y-6">
         <h2 className="text-2xl font-semibold">Pending Business Responses ({pendingResponses?.length || 0})</h2>
         {pendingResponses && pendingResponses.length > 0 ? (
-          pendingResponses.map((response: any) => (
+          pendingResponses.map((response: PendingResponse) => (
             <Card key={`response-${response.id}`} className="bg-white border-blue-400">
               <CardHeader>
                 <CardTitle>Response to: &quot;{response.reviews?.title}&quot;</CardTitle>
