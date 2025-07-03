@@ -42,16 +42,22 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             {post.title}
           </h1>
-          {post.mainImage && (
-            <div className="relative h-96 w-full rounded-lg overflow-hidden">
-              <Image
-                src={urlFor(post.mainImage).url()}
-                alt={post.title}
-                className="object-cover"
-                fill
-              />
-            </div>
-          )}
+          {(() => {
+            const imageUrl = urlFor(post.mainImage).url();
+            if (typeof imageUrl === 'string' && imageUrl.length > 0) {
+              return (
+                <div className="relative h-96 w-full rounded-lg overflow-hidden">
+                  <Image
+                    src={imageUrl}
+                    alt={post.title}
+                    className="object-cover"
+                    fill
+                  />
+                </div>
+              );
+            }
+            return null;
+          })()}
           <div className="prose prose-lg max-w-none">
             <PortableText value={post.body} />
           </div>
