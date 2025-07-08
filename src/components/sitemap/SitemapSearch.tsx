@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-
 export default function SitemapSearch() {
   const handleInput = (e: React.FormEvent<HTMLInputElement>) => {
     const query = e.currentTarget.value.toLowerCase();

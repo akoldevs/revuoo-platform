@@ -8,7 +8,6 @@ import SitemapHero from "@/components/sitemap/SitemapHero";
 import SitemapSection from "@/components/sitemap/SitemapSection";
 import { Metadata } from "next";
 import SitemapSearch from "@/components/sitemap/SitemapSearch";
-import { useState } from "react";
 
 // --- TypeScript Interfaces ---
 interface ChildCategory {

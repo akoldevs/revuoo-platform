@@ -23,7 +23,7 @@ export default function PricingHeader({
         </h1>
         <p className="mt-6 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
           Simple, transparent pricing. No hidden fees. Cancel anytime. Upgrade
-          when you're ready.
+          when you&apos;re ready.
         </p>
 
         <div className="mt-16 flex justify-center">

@@ -31,7 +31,7 @@ export default function WidgetsHero() {
             Showcase Your Trust. Power Your Business.
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-300">
-            Integrate Revuoo's powerful tools directly onto your website to
+            Integrate Revuoo&apos;s powerful tools directly onto your website to
             boost conversions, streamline workflows, and build unparalleled
             customer confidence.
           </p>

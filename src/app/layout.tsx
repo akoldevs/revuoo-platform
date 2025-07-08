@@ -6,6 +6,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Toaster } from "sonner";
+import Head from "next/head"; // ✅ Import Head to inject meta tags
 
 export const metadata: Metadata = {
   title: "Revuoo - Unbiased Reviews & Expert Blogs",
@@ -20,8 +21,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Head>
+        {/* ✅ Temporarily block search engine indexing */}
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
       <body>
-        <Toaster richColors position="top-center" /> {/* ✅ Add this line */}
+        <Toaster richColors position="top-center" />
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="flex-grow">{children}</main>

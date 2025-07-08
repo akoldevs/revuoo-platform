@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   LineElement,
@@ -10,7 +9,10 @@ import {
   PointElement,
   Tooltip,
   Legend,
+  ChartData,
+  ChartOptions,
 } from "chart.js";
+import { Line } from "react-chartjs-2";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -37,14 +39,13 @@ export default function EarningsChart({
   months = 12,
   commissionRate = 0.3,
 }: EarningsChartProps) {
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<ChartJS<"line"> | null>(null);
   const [viewMode, setViewMode] = useState<"monthly" | "cumulative">(
     "cumulative"
   );
   const [churnRate, setChurnRate] = useState(10); // % per month
 
   const monthlyEarning = referrals * planPrice * commissionRate;
-
   const labels = Array.from({ length: months }, (_, i) => `Month ${i + 1}`);
 
   // Earnings without churn
@@ -58,16 +59,48 @@ export default function EarningsChart({
 
   for (let i = 0; i < months; i++) {
     const earnings = activeUsers * planPrice * commissionRate;
-
-    if (viewMode === "monthly") {
-      churnedData.push(earnings);
-    } else {
-      const previous = i > 0 ? churnedData[i - 1] : 0;
-      churnedData.push(earnings + previous);
-    }
-
+    churnedData.push(
+      viewMode === "monthly" ? earnings : earnings + (churnedData[i - 1] || 0)
+    );
     activeUsers *= 1 - churnRate / 100;
   }
+
+  const data: ChartData<"line"> = {
+    labels,
+    datasets: [
+      {
+        label: "With Churn",
+        data: churnedData,
+        borderColor: "#4f46e5",
+        backgroundColor: "rgba(99, 102, 241, 0.1)",
+        tension: 0.3,
+        fill: true,
+      },
+      {
+        label: "Without Churn",
+        data: baseData,
+        borderColor: "#a5b4fc",
+        borderDash: [5, 5],
+        tension: 0.3,
+        fill: false,
+      },
+    ],
+  };
+
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    plugins: {
+      legend: { position: "bottom" },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => `$${value}`,
+        },
+      },
+    },
+  };
 
   const handleDownload = () => {
     const chart = chartRef.current;
@@ -81,7 +114,11 @@ export default function EarningsChart({
   };
 
   const handleShare = () => {
-    const message = `Check out my Revuoo earnings projection! 💸\n\n$${monthlyEarning}/mo from ${referrals} referrals on the $${planPrice}/mo plan.\n\nTry it yourself: https://revuoo.com/affiliates`;
+    const message = `Check out my Revuoo earnings projection! 💸
+
+$${monthlyEarning}/mo from ${referrals} referrals on the $${planPrice}/mo plan.
+
+Try it yourself: https://revuoo.com/affiliates`;
     navigator.clipboard.writeText(message);
     alert("Projection copied to clipboard! 📋");
   };
@@ -126,44 +163,7 @@ export default function EarningsChart({
         />
       </div>
 
-      <Line
-        ref={chartRef}
-        data={{
-          labels,
-          datasets: [
-            {
-              label: "With Churn",
-              data: churnedData,
-              borderColor: "#4f46e5",
-              backgroundColor: "rgba(99, 102, 241, 0.1)",
-              tension: 0.3,
-              fill: true,
-            },
-            {
-              label: "Without Churn",
-              data: baseData,
-              borderColor: "#a5b4fc",
-              borderDash: [5, 5],
-              tension: 0.3,
-              fill: false,
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: { position: "bottom" },
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: (value) => `$${value}`,
-              },
-            },
-          },
-        }}
-      />
+      <Line ref={chartRef} data={data} options={options} />
 
       <div className="mt-6 flex gap-4">
         <Button onClick={handleDownload}>📥 Download Chart</Button>

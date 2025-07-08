@@ -26,7 +26,7 @@ interface Review {
 export default async function TrendingReviews() {
   const supabase = await createClient();
 
-  const { data: reviews, error } = await supabase
+  const { data, error } = await supabase
     .from("reviews")
     .select(`id, summary, category, businesses (name, revuoo_score, slug)`)
     .eq("status", "approved")
@@ -37,11 +37,19 @@ export default async function TrendingReviews() {
     console.error("Error fetching trending reviews:", error.message || error);
   }
 
+  const reviews = data as Review[] | null;
+
   if (!reviews || reviews.length === 0) {
     return (
-      <section className="bg-gray-50 py-24 sm:py-32 text-center">
+      <section
+        aria-labelledby="trending-heading"
+        className="bg-gray-50 py-24 sm:py-32 text-center"
+      >
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2
+            id="trending-heading"
+            className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+          >
             Be the First to Review!
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
@@ -59,7 +67,7 @@ export default async function TrendingReviews() {
       className="bg-gray-50 py-24 sm:py-32"
     >
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <header className="mx-auto max-w-2xl text-center">
           <h2
             id="trending-heading"
             className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
@@ -70,7 +78,7 @@ export default async function TrendingReviews() {
             See what services and products are getting noticed. Here are some of
             the latest high-quality reviews from our community and experts.
           </p>
-        </div>
+        </header>
 
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
           {reviews.map((review) => {
@@ -81,7 +89,11 @@ export default async function TrendingReviews() {
             if (!business?.slug) return null;
 
             return (
-              <article key={review.id}>
+              <article
+                key={review.id}
+                itemScope
+                itemType="https://schema.org/Review"
+              >
                 <Link
                   href={`/business/${business.slug}`}
                   className="block h-full"
@@ -90,7 +102,10 @@ export default async function TrendingReviews() {
                   <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
                     <CardHeader>
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-xl font-semibold">
+                        <CardTitle
+                          itemProp="itemReviewed"
+                          className="text-xl font-semibold"
+                        >
                           {business.name || "Unknown Business"}
                         </CardTitle>
                         {business.revuoo_score !== null && (
@@ -99,12 +114,18 @@ export default async function TrendingReviews() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 pt-1">
+                      <p
+                        className="text-sm text-gray-500 pt-1"
+                        itemProp="reviewAspect"
+                      >
                         {review.category}
                       </p>
                     </CardHeader>
                     <CardContent className="flex-grow">
-                      <p className="text-gray-700 line-clamp-4">
+                      <p
+                        className="text-gray-700 line-clamp-4"
+                        itemProp="reviewBody"
+                      >
                         {review.summary || "No summary available."}
                       </p>
                     </CardContent>

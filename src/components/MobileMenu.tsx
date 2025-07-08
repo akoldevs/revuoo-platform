@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X, Star, User, PanelTop, LifeBuoy } from "lucide-react";
+import { Menu, Star, User, PanelTop, LifeBuoy } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -11,12 +11,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
+interface User {
+  id: string;
+  email: string;
+}
+
+interface Profile {
+  role?: "admin" | "user" | string;
+}
+
 export default function MobileMenu({
   user,
   profile,
 }: {
-  user: any;
-  profile: any;
+  user: User | null;
+  profile: Profile | null;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -39,6 +48,7 @@ export default function MobileMenu({
         aria-label="Mobile Navigation Menu"
       >
         <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
+
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/"
@@ -49,7 +59,7 @@ export default function MobileMenu({
           </Link>
         </div>
 
-        <nav className="space-y-3">
+        <nav className="space-y-3" aria-label="Main navigation">
           <Link
             href="/reviews"
             onClick={() => setOpen(false)}
@@ -94,7 +104,10 @@ export default function MobileMenu({
           </Link>
         </nav>
 
-        <div className="mt-8 border-t pt-6 space-y-3">
+        <div
+          className="mt-8 border-t pt-6 space-y-3"
+          aria-label="User navigation"
+        >
           {user ? (
             <>
               <Link

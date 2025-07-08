@@ -1,10 +1,10 @@
 // src/components/widgets/WidgetShowcase.tsx
 "use client";
 
-import { useState, ComponentType } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Quote, RefreshCw, Lock } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -84,7 +84,6 @@ export default function WidgetShowcase() {
   const userRank = planRank[userPlan];
 
   const selectedWidget = widgetOptions.find((w) => w.value === widgetType)!;
-  const WidgetPreviewComponent = selectedWidget.component;
 
   // A more realistic embed code
   const embedCode = `<div id="revuoo-widget-container" data-revuoo-widget="${widgetType}" data-color="${color}"></div>\n<script async src="https://cdn.revuoo.com/widgets.js"></script>`;
@@ -213,7 +212,8 @@ export default function WidgetShowcase() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {widgetOptions.map((option) => {
                     const WidgetComponent = option.component;
-                    const isLocked = planRank[option.plan] > userRank;
+                    const isLocked =
+                      planRank[option.plan as keyof typeof planRank] > userRank;
 
                     return (
                       <div

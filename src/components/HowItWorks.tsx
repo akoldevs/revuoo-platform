@@ -40,8 +40,8 @@ export default function HowItWorks() {
             Your Journey to Smarter Choices
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            In just a few simple steps, find exactly what you're looking for and
-            make decisions with confidence.
+            In just a few simple steps, find exactly what you&apos;re looking
+            for and make decisions with confidence.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-y-12 md:gap-x-8">
