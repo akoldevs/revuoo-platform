@@ -11,6 +11,11 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // ✅ Add this block to ignore the Supabase types file
+  {
+    ignores: ["src/types/supabase.ts"],
+  },
 ];
 
 export default eslintConfig;
