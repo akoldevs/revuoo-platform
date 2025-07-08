@@ -8,11 +8,6 @@ CREATE POLICY "Users can view their own user data."
 ON public.users FOR SELECT
 USING ( auth.uid() = id );
 
--- Allow admins to see all user records
-CREATE POLICY "Admins can view all user data."
-ON public.users FOR SELECT
-USING ( (SELECT role FROM public.users WHERE id = auth.uid()) = 'admin' );
-
 
 -- 2. Enable RLS on the 'review_ai_analysis' table
 -- We already created the read-only policy for this table, so we just need to enable RLS.

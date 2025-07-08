@@ -1,23 +1,12 @@
 // src/components/LoadMoreReviews.tsx
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <-- 1. Import useEffect
 import { Button } from './ui/button';
 import { Loader2 } from 'lucide-react';
-import ReviewCard from './ReviewCard'; // We will reuse our existing card
-import { fetchMoreReviews } from '@/app/reviews/actions'; // We will create this action next
-
-// Define the shape of the review data
-type Review = {
-  id: number;
-  title: string;
-  summary: string;
-  overall_rating: number | null;
-  businesses: {
-    name: string;
-    slug: string;
-  } | null;
-};
+import ReviewCard from './ReviewCard';
+import { fetchMoreReviews } from '@/app/reviews/actions';
+import { Review } from '@/lib/types';
 
 export default function LoadMoreReviews({
   initialReviews,
@@ -28,8 +17,16 @@ export default function LoadMoreReviews({
 }) {
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(initialReviews.length > 0);
   const [isLoading, setIsLoading] = useState(false);
+
+  // --- 2. THIS IS THE FIX ---
+  // This useEffect hook will run whenever the initialReviews prop changes.
+  // This happens after a router.refresh(), ensuring our client state
+  // is always in sync with the latest server data.
+  useEffect(() => {
+    setReviews(initialReviews);
+  }, [initialReviews]);
 
   const loadMore = async () => {
     setIsLoading(true);
@@ -40,7 +37,7 @@ export default function LoadMoreReviews({
       setPage(nextPage);
       setReviews((prevReviews) => [...prevReviews, ...newReviews]);
     } else {
-      setHasMore(false); // No more reviews to load
+      setHasMore(false);
     }
     setIsLoading(false);
   };

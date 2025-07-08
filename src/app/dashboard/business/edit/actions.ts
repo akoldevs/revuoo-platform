@@ -13,32 +13,12 @@ export async function updateBusinessProfile(formData: FormData) {
     throw new Error('User is not authenticated.')
   }
 
-  const businessId = formData.get('businessId') as string;
-  const businessSlug = formData.get('businessSlug') as string;
-
-  if (!businessId || !businessSlug) {
-    throw new Error('Business ID or slug is missing.')
+  const businessId = formData.get('businessId') as string
+  if (!businessId) {
+    throw new Error('Business ID is missing.')
   }
 
-  // Handle the services array
-  const servicesString = formData.get('services') as string;
-  let servicesArray: string[] = [];
-  try {
-    servicesArray = JSON.parse(servicesString);
-  } catch (error) {
-    console.error("Failed to parse services JSON:", error);
-  }
-
-  // --- NEW: Handle the operating hours object ---
-  const operatingHoursString = formData.get('operatingHours') as string;
-  let operatingHoursObject = {};
-  try {
-    operatingHoursObject = JSON.parse(operatingHoursString);
-  } catch (error) {
-    console.error("Failed to parse operating hours JSON:", error);
-  }
-
-  // Prepare the final data object for the database update
+  // Create an object with all the updated data from the form
   const updatedData = {
     name: formData.get('name') as string,
     description: formData.get('description') as string,
@@ -46,23 +26,24 @@ export async function updateBusinessProfile(formData: FormData) {
     phone_number: formData.get('phone_number') as string,
     website_url: formData.get('website_url') as string,
     business_email: formData.get('business_email') as string,
-    services: servicesArray,
-    operating_hours: operatingHoursObject, // <-- Add the parsed hours object
   }
 
+  // Securely update the business profile, ensuring the user is the owner
   const { error } = await supabase
     .from('businesses')
     .update(updatedData)
     .eq('id', businessId)
-    .eq('owner_id', user.id)
+    .eq('owner_id', user.id) // Security check
 
   if (error) {
     console.error('Error updating business profile:', error)
     return { error: 'Failed to update profile.' }
   }
 
-  revalidatePath('/dashboard/business');
-  revalidatePath(`/business/${businessSlug}`);
+  // Revalidate the paths so the changes are visible immediately
+  revalidatePath('/dashboard/business')
+  // We need the business slug to revalidate the public page. We'll add this later.
 
+  // Redirect back to the main business dashboard
   redirect('/dashboard/business')
 }

@@ -1,68 +1,44 @@
 // src/app/blog/[slug]/page.tsx
-import { client } from '@/lib/sanity/client';
-import imageUrlBuilder from '@sanity/image-url'
-import Image from 'next/image';
+import { client } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
-import { notFound } from 'next/navigation';
 
-// Helper to generate image URLs from Sanity data
-const builder = imageUrlBuilder(client);
-function urlFor(source: unknown) {
-  return builder.image(source);
-}
-
-interface Article {
+// Define a type for our full Post data
+interface FullPost {
+  _id: string;
   title: string;
-  mainImage: unknown;
-  body: unknown[];
+  slug: {
+    current: string;
+  };
+  body: any; // The body is a complex array of blocks
 }
 
+// This function fetches a single blog post based on its slug
 async function getPost(slug: string) {
+  // This GROQ query uses a parameter ($slug) to find the one document
+  // that matches the type 'post' and has the correct slug.
   const query = `*[_type == "post" && slug.current == $slug][0] {
+    _id,
     title,
-    mainImage,
+    slug,
     body
   }`;
 
-  const post: Article = await client.fetch(query, { slug });
+  const post = await client.fetch<FullPost>(query, { slug });
   return post;
 }
 
+// This is our page component. It receives params from the URL.
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post: Article = await getPost(params.slug);
-
-  if (!post) {
-    notFound();
-  }
+  const post = await getPost(params.slug);
 
   return (
-    <div className="bg-white py-12 sm:py-16">
-      <div className="mx-auto max-w-3xl px-6 lg:px-8">
-        <div className="space-y-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            {post.title}
-          </h1>
-          {(() => {
-            const imageUrl = urlFor(post.mainImage).url();
-            if (typeof imageUrl === 'string' && imageUrl.length > 0) {
-              return (
-                <div className="relative h-96 w-full rounded-lg overflow-hidden">
-                  <Image
-                    src={imageUrl}
-                    alt={post.title}
-                    className="object-cover"
-                    fill
-                  />
-                </div>
-              );
-            }
-            return null;
-          })()}
-          <div className="prose prose-lg max-w-none">
-            <PortableText value={post.body} />
-          </div>
-        </div>
+    <article className="w-full max-w-3xl mx-auto px-6 py-12">
+      <h1 className="text-4xl font-extrabold tracking-tight mb-8">{post.title}</h1>
+
+      {/* The PortableText component renders the rich content from Sanity */}
+      <div className="prose max-w-none">
+        <PortableText value={post.body} />
       </div>
-    </div>
+    </article>
   );
 }

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { submitResponse } from './actions';
-import { Edit, GalleryHorizontal } from 'lucide-react';
+import { Edit, GalleryHorizontal, BarChart2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +70,13 @@ export default async function BusinessDashboardPage() {
         <Link href="/dashboard/business/gallery">
           <GalleryHorizontal className="mr-2 h-4 w-4" />
           Manage Gallery
+        </Link>
+      </Button>
+      {/* --- THIS IS THE NEW BUTTON --- */}
+      <Button asChild variant="outline">
+        <Link href="/dashboard/business/analytics">
+          <BarChart2 className="mr-2 h-4 w-4" />
+          View Analytics
         </Link>
       </Button>
         </div>

@@ -4,16 +4,17 @@ import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
-
 console.log('AI Moderator function with Gemini is up!');
 
 const genAI = new GoogleGenerativeAI(Deno.env.get('GEMINI_API_KEY')!);
 
 serve(async (req) => {
   try {
+    // --- THIS IS THE FIX ---
+    // We now use our custom secret name that doesn't start with SUPABASE_
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('REVOOO_SERVICE_ROLE_KEY') ?? '' // Use our custom secret name
     );
     const { record: newReview } = await req.json();
 
@@ -37,24 +38,13 @@ serve(async (req) => {
         "suggested_summary": "string"
       }
     `;
-
+    
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const aiText = response.text();
-
-    // --- THIS IS THE FIX ---
-    // Clean the response: remove markdown backticks and the 'json' specifier.
-    const cleanedText = aiText.replace(/```json\n?|```/g, '').trim();
     
-    let aiAnalysis;
-    try {
-      // Parse the CLEANED text
-      aiAnalysis = JSON.parse(cleanedText);
-    } catch (e) {
-      console.error("Failed to parse AI response JSON:", e);
-      console.error("Original AI text was:", aiText); // Log the original text for debugging
-      throw new Error("AI response was not valid JSON after cleaning.");
-    }
+    const cleanedText = aiText.replace(/```json\n?|```/g, '').trim();
+    const aiAnalysis = JSON.parse(cleanedText);
     
     const analysisData = {
       review_id: newReview.id,

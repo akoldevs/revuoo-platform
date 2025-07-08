@@ -18,43 +18,23 @@ const getSafetyBadgeVariant = (status: string | undefined): "default" | "destruc
     }
 };
 
-type PendingReview = {
-  id: number;
-  title: string;
-  summary: string;
-  created_at: string;
-  businesses?: { name?: string };
-  profiles?: { full_name?: string };
-  review_ai_analysis?: {
-    safety_rating?: string;
-    reasoning?: string;
-    sentiment?: string;
-    summary?: string;
-  } | Array<{
-    safety_rating?: string;
-    reasoning?: string;
-    sentiment?: string;
-    summary?: string;
-  }>;
-};
-
-type PendingResponse = {
-  id: number;
-  response_text: string;
-  businesses?: { name?: string };
-  reviews?: { title?: string };
-};
+type PendingReview = any; // Using any temporarily for simplicity
+type PendingResponse = any; // Using any temporarily for simplicity
 
 export default async function AdminPage() {
-  const supabase = await createClient();
+  const supabase = await createClient(); // <-- THE FIX IS HERE
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) { redirect('/login'); }
 
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single();
   if (profile?.role !== 'admin') {
-    // We will use a proper notFound() call from Next.js later
-    return <div>Not Authorized</div>;
+    return (
+        <div className="w-full max-w-6xl mx-auto px-6 py-12">
+            <h1 className="text-3xl font-bold text-red-600">Not Authorized</h1>
+            <p className="mt-2 text-lg text-gray-600">You do not have permission to view this page.</p>
+        </div>
+    );
   }
 
   const pendingReviewsPromise = supabase.from('reviews').select(`*, businesses (name), profiles (full_name), review_ai_analysis (*)`).eq('status', 'pending').order('created_at', { ascending: true });
@@ -67,6 +47,7 @@ export default async function AdminPage() {
       <h1 className="text-3xl font-bold">Admin Dashboard</h1>
       <p className="mt-2 text-lg text-gray-600">Content Moderation Queue</p>
 
+      {/* --- PENDING REVIEWS SECTION --- */}
       <div className="mt-8 space-y-6">
         <h2 className="text-2xl font-semibold">Pending Reviews ({pendingReviews?.length || 0})</h2>
         {pendingReviews && pendingReviews.length > 0 ? (
@@ -105,6 +86,7 @@ export default async function AdminPage() {
         ) : (<p className="text-gray-500 py-10 text-center">No pending reviews. Great job!</p>)}
       </div>
 
+      {/* --- PENDING BUSINESS RESPONSES SECTION --- */}
       <div className="mt-12 pt-8 border-t space-y-6">
         <h2 className="text-2xl font-semibold">Pending Business Responses ({pendingResponses?.length || 0})</h2>
         {pendingResponses && pendingResponses.length > 0 ? (

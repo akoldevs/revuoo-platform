@@ -5,51 +5,45 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function submitResponse(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
-  // 1. Get the current user
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    throw new Error("Not authenticated");
+    throw new Error('User is not authenticated.')
   }
 
-  // 2. Get form data
-  const reviewId = formData.get('reviewId');
-  const businessId = formData.get('businessId');
-  const responseText = formData.get('responseText');
+  const reviewId = formData.get('reviewId') as string
+  const businessId = formData.get('businessId') as string
+  const responseText = formData.get('responseText') as string
 
-  if (!reviewId || !businessId || !responseText) {
-    throw new Error("Missing form data");
-  }
-
-  // 3. SECURITY CHECK: Verify the user owns the business they are responding for
+  // Security Check: Does the person submitting own this business?
   const { data: business, error: businessError } = await supabase
     .from('businesses')
     .select('id')
     .eq('id', businessId)
     .eq('owner_id', user.id)
-    .single();
-  
+    .single()
+
   if (businessError || !business) {
-    throw new Error("You are not authorized to respond for this business.");
+    throw new Error('User is not authorized to respond for this business.')
   }
-  
-  // 4. Insert the response into the database
-  const { error: insertError } = await supabase
-    .from('business_responses')
-    .insert({
-      review_id: Number(reviewId),
-      business_id: Number(businessId),
-      response_text: String(responseText),
-      author_id: user.id,
-      status: 'pending', // All responses must be moderated
-    });
-  
-  if (insertError) {
-    console.error("Error submitting response:", insertError);
-    throw new Error("Could not submit response.");
+
+  // If security check passes, insert the response
+  const { error } = await supabase.from('business_responses').insert({
+    review_id: reviewId,
+    business_id: businessId,
+    response_text: responseText,
+    author_id: user.id,
+    status: 'approved' // We'll approve automatically for now
+  })
+
+  if (error) {
+    console.error('Error submitting response:', error)
+    return
   }
-  
-  // 5. Revalidate the path to refresh the UI
-  revalidatePath('/dashboard/business');
+
+  // Refresh the data on both the dashboard and the public business page
+  revalidatePath('/dashboard/business')
+  // We need the business slug to revalidate the public page, which we don't have here.
+  // We will add this later. For now, revalidating the dashboard is enough.
 }
