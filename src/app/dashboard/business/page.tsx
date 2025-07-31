@@ -7,6 +7,26 @@ import { Star, Eye, MessageSquare } from "lucide-react";
 import RecentReviews from "@/components/dashboard/RecentReviews";
 import ProfileCompleteness from "@/components/dashboard/ProfileCompleteness";
 
+// Define a specific type for a day's operating hours
+type DayHours =
+  | {
+      open: string;
+      close: string;
+    }
+  | { closed: true };
+
+// Define a structure for the entire week's operating hours
+type OperatingHours = {
+  [key in
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday"
+    | "sunday"]?: DayHours;
+};
+
 type BusinessStats = {
   total_reviews: number;
   average_rating: number;
@@ -30,7 +50,8 @@ type BusinessProfile = {
   address: string | null;
   phone_number: string | null;
   website_url: string | null;
-  operating_hours: any;
+  // FIX: Replaced 'any' with a specific type for operating hours.
+  operating_hours: OperatingHours | null;
   services: string[] | null;
 };
 
@@ -73,7 +94,11 @@ const calculateProfileCompleteness = (business: BusinessProfile) => {
 
   fields.forEach((field) => {
     const value = business[field.key as keyof BusinessProfile];
-    if (value && (Array.isArray(value) ? value.length > 0 : true)) {
+    // Check for null/undefined, empty arrays, or empty objects
+    if (
+      value &&
+      (Array.isArray(value) ? value.length > 0 : Object.keys(value).length > 0)
+    ) {
       completedFields++;
     } else {
       missingSteps.push({ label: field.label, href: field.href });
@@ -118,7 +143,9 @@ export default async function BusinessDashboardPage() {
   const stats =
     statsData && statsData[0] ? (statsData[0] as BusinessStats) : null;
   const recentReviews = (recentReviewsData as Review[] | null) || [];
-  const { percentage, missingSteps } = calculateProfileCompleteness(business);
+  const { percentage, missingSteps } = calculateProfileCompleteness(
+    business as BusinessProfile
+  );
 
   if (!stats) {
     return (

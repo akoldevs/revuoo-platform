@@ -16,14 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Receipt,
-  DollarSign,
-  Users,
-  Activity,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
+import { Receipt, DollarSign, Users, Activity } from "lucide-react";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";

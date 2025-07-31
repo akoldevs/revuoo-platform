@@ -19,7 +19,7 @@ export default async function DashboardPage() {
       <p>
         Your email is: <strong>{user.email}</strong>
       </p>
-      <p>Please check your browser's Local Storage now.</p>
+      <p>Please check your browser&apos;s Local Storage now.</p>
     </div>
   );
 }

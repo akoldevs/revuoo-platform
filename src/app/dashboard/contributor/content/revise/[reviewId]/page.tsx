@@ -11,11 +11,14 @@ type RejectedReviewData = {
   assignment_id: number;
   title: string;
   summary: string | null;
-  body_content: any; // TipTap content is a JSON object
+  body_content: Record<string, unknown>;
   rating_overall: number;
   rating_pros: string[];
   rating_cons: string[];
   moderator_notes: string | null;
+  // Added fields needed for security checks
+  contributor_id: string;
+  status: string;
 };
 
 export default async function ReviseContentPage({
@@ -34,19 +37,16 @@ export default async function ReviseContentPage({
     return notFound();
   }
 
-  // Fetch the specific review that needs to be revised.
+  // Fetch the specific review and apply our specific type.
   const { data: review, error } = await supabase
     .from("expert_reviews")
     .select(
       "id, assignment_id, title, summary, body_content, rating_overall, rating_pros, rating_cons, contributor_id, status, moderator_notes"
     )
     .eq("id", reviewId)
-    .single();
+    .single<RejectedReviewData>();
 
   // Security Checks:
-  // 1. Ensure the review exists.
-  // 2. Ensure the logged-in user is the owner of the review.
-  // 3. Ensure the review's status is 'rejected'.
   if (
     error ||
     !review ||
@@ -56,12 +56,16 @@ export default async function ReviseContentPage({
     return notFound();
   }
 
-  // Prepare the initial data for the form.
+  // FIX: Constructed a new object for initialData that strictly matches the
+  // expected prop type of the SubmissionForm. This avoids spreading an
+  // incompatible object and resolves the type error.
   const initialData = {
-    ...review,
-    bodyContent: JSON.stringify(review.body_content), // Convert JSON to string for the form
-    ratingPros: review.rating_pros.join(", "), // Convert array to comma-separated string
-    ratingCons: review.rating_cons.join(", "), // Convert array to comma-separated string
+    title: review.title,
+    // Coalesce null to undefined to satisfy the component's prop type.
+    summary: review.summary ?? undefined,
+    bodyContent: JSON.stringify(review.body_content),
+    ratingPros: review.rating_pros.join(", "),
+    ratingCons: review.rating_cons.join(", "),
     ratingOverall: review.rating_overall,
   };
 

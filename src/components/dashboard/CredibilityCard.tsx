@@ -1,7 +1,7 @@
 // src/components/dashboard/CredibilityCard.tsx
 "use client";
 
-import { ShieldCheck, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,

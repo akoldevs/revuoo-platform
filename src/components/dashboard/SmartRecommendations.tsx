@@ -3,12 +3,18 @@
 
 import BusinessCard from "@/components/business/BusinessCard";
 
+// FIX: Updated the Business interface to perfectly match the data structure
+// being passed from the parent page. This makes the types consistent across your app.
 interface Business {
   id: string;
   name: string;
   slug: string;
   description: string | null;
   revuoo_score: number | null;
+  // Added fields for full type alignment
+  title: string;
+  cta_link: string;
+  cta_text: string;
 }
 
 interface RecommendationData {

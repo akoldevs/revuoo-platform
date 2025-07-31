@@ -24,8 +24,7 @@ import {
   HelpCircle,
   FileText,
   Eye,
-  BarChart,
-} from "lucide-react";
+} from "lucide-react"; // ✅ FIX: Removed unused 'BarChart' import
 import { format } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
@@ -95,9 +94,9 @@ const getStudioUrl = (
 
 export default async function ContentManagementPage() {
   const [posts, faqs, pages] = await Promise.all([
-    sanityClient.fetch(postsQuery),
-    sanityClient.fetch(faqsQuery),
-    sanityClient.fetch(pagesQuery),
+    sanityClient.fetch<SanityPost[]>(postsQuery),
+    sanityClient.fetch<SanityHelpArticle[]>(faqsQuery),
+    sanityClient.fetch<SanityLegalPage[]>(pagesQuery),
   ]);
 
   return (
@@ -149,7 +148,8 @@ export default async function ContentManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {posts.map((post) => (
+                    {/* ✅ FIX: Explicitly typed 'post' to resolve 'any' type error. */}
+                    {posts.map((post: SanityPost) => (
                       <TableRow key={post._id}>
                         <TableCell className="font-medium flex items-center gap-4">
                           {post.mainImage && (
@@ -247,7 +247,8 @@ export default async function ContentManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {faqs.map((faq) => (
+                    {/* ✅ FIX: Explicitly typed 'faq' to resolve 'any' type error. */}
+                    {faqs.map((faq: SanityHelpArticle) => (
                       <TableRow key={faq._id}>
                         <TableCell className="font-medium">
                           {faq.question}
@@ -312,7 +313,8 @@ export default async function ContentManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {pages.map((page) => (
+                    {/* ✅ FIX: Explicitly typed 'page' to resolve 'any' type error. */}
+                    {pages.map((page: SanityLegalPage) => (
                       <TableRow key={page._id}>
                         <TableCell className="font-medium">
                           {page.title}

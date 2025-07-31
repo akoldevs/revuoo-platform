@@ -4,10 +4,19 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+// Define a specific type for an assignment object to replace 'any'.
+// This ensures type safety and provides better autocompletion.
+interface Assignment {
+  id: string | number;
+  title: string;
+  updated_at: string;
+}
+
 export default function ActiveAssignments({
   assignments,
 }: {
-  assignments: any[];
+  // FIX: Replaced 'any[]' with the specific 'Assignment[]' type.
+  assignments: Assignment[];
 }) {
   return (
     <div className="mt-8 bg-card p-6 rounded-lg border">
@@ -31,7 +40,6 @@ export default function ActiveAssignments({
                 </p>
               </div>
               <Button asChild>
-                {/* FIX: Updated link to use the new dynamic route */}
                 <Link
                   href={`/dashboard/contributor/content/submit/${assignment.id}`}
                 >

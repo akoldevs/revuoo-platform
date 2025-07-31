@@ -1,5 +1,5 @@
 // src/app/admin/support/new/page.tsx
-import { LifeBuoy, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { CreateTicketForm } from "@/components/admin/CreateTicketForm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

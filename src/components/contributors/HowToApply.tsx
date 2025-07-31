@@ -3,6 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
+import Link from "next/link"; // FIX: Imported the Link component
 
 export default function HowToApply() {
   return (
@@ -36,12 +37,14 @@ export default function HowToApply() {
         </div>
         <p className="mt-6 text-sm text-gray-500">
           Prefer a form?{" "}
-          <a
+          {/* FIX: Replaced the standard <a> tag with Next.js's Link component
+              for optimized, client-side navigation. */}
+          <Link
             href="/contributors/form"
             className="text-indigo-400 hover:underline"
           >
             Submit your application here
-          </a>
+          </Link>
           .
         </p>
       </div>

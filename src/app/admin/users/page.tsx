@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Users, AlertTriangle } from "lucide-react";
+import { Users } from "lucide-react";
 import { UserRoleManager } from "@/components/admin/UserRoleManager";
 import { Toaster } from "@/components/ui/sonner";
 import { User } from "@supabase/supabase-js";

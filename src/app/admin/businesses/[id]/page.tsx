@@ -3,7 +3,18 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Business360View } from "@/components/admin/Business360View";
 
-// ✅ Define the type for our new integration data
+// --- Type Definitions ---
+
+// ✅ FIX: Defined a specific type for a Review to replace 'any'
+type Review = {
+  id: string | number;
+  title: string;
+  summary: string | null;
+  overall_rating: number;
+  created_at: string;
+  author_name: string | null;
+};
+
 type ConnectedIntegration = {
   name: string;
   category: string;
@@ -11,7 +22,7 @@ type ConnectedIntegration = {
   connected_at: string;
 };
 
-// ✅ Update the main data type to include the new field
+// ✅ FIX: Updated the main data type to use the new, specific Review type
 type Business360Data = {
   id: number;
   name: string;
@@ -20,11 +31,11 @@ type Business360Data = {
   created_at: string;
   total_reviews: number;
   average_rating: number;
-  recent_user_reviews: any[] | null;
+  recent_user_reviews: Review[] | null; // Replaced any[]
   subscription_plan: string | null;
   subscription_status: string | null;
-  expert_reviews: any[] | null;
-  connected_integrations: ConnectedIntegration[] | null; // Add the field here
+  expert_reviews: Review[] | null; // Replaced any[]
+  connected_integrations: ConnectedIntegration[] | null;
 };
 
 export default async function Business360Page({
@@ -41,7 +52,7 @@ export default async function Business360Page({
 
   const { data, error } = await supabase
     .rpc("get_business_360_view", { p_business_id: businessId })
-    .returns<Business360Data>() // Use the updated type here
+    .returns<Business360Data>()
     .single();
 
   if (error || !data) {

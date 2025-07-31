@@ -1,5 +1,5 @@
 // src/app/admin/integrations/new/page.tsx
-import { Puzzle, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { CreateIntegrationForm } from "@/components/admin/CreateIntegrationForm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

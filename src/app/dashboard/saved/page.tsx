@@ -6,6 +6,22 @@ import BusinessCard from "@/components/business/BusinessCard"; // Reusing our ex
 
 export const dynamic = "force-dynamic";
 
+// Define a specific type for a business object.
+type Business = {
+  // FIX: Changed 'id' from 'number' to 'string' to match the type
+  // expected by the BusinessCard component.
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  revuoo_score: number | null;
+};
+
+// Define the shape of the data returned from the 'saved_businesses' table.
+type SavedItem = {
+  businesses: Business | null; // The related business can be null
+};
+
 export default async function SavedItemsPage() {
   const supabase = await createClient();
   const {
@@ -16,31 +32,31 @@ export default async function SavedItemsPage() {
     notFound();
   }
 
-  // Fetch all businesses that the current user has saved.
-  // The select('businesses (*)') query is a powerful Supabase feature
-  // that fetches all columns from the related 'businesses' table.
+  // Fetch all businesses that the current user has saved and apply our types.
   const { data: savedItems, error } = await supabase
     .from("saved_businesses")
     .select(
       `
-            businesses (
-                id,
-                name,
-                slug,
-                description,
-                revuoo_score
-            )
-        `
+        businesses (
+          id,
+          name,
+          slug,
+          description,
+          revuoo_score
+        )
+      `
     )
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .returns<SavedItem[]>();
 
   if (error) {
     console.error("Error fetching saved businesses:", error);
   }
 
-  // The data is nested, so we extract just the businesses array
-  const businesses = savedItems?.map((item) => item.businesses) || [];
+  // Properly extract the nested business objects and filter out any nulls.
+  const businesses =
+    savedItems?.map((item) => item.businesses).filter(Boolean) || [];
 
   return (
     <div>
@@ -55,10 +71,8 @@ export default async function SavedItemsPage() {
         {businesses && businesses.length > 0 ? (
           businesses.map(
             (business) =>
-              // We can just cast the type here as it matches the card's expectation
-              business && (
-                <BusinessCard key={business.id} business={business as any} />
-              )
+              // The 'business' object is now correctly typed.
+              business && <BusinessCard key={business.id} business={business} />
           )
         ) : (
           <div className="text-center py-16 bg-white rounded-lg border">

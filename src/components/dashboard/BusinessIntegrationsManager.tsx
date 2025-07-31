@@ -9,19 +9,21 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Puzzle, CheckCircle, ArrowUpCircle } from "lucide-react";
+import { Puzzle, ArrowUpCircle } from "lucide-react";
 import { IntegrationConnectModal } from "./IntegrationConnectModal";
 import { IntegrationManageModal } from "./IntegrationManageModal";
 import Link from "next/link";
 
 // --- Type Definitions ---
+type PlanTier = "free" | "pro" | "advanced" | "enterprise";
+
 type Integration = {
   id: string;
   name: string;
   description: string | null;
   logo_url: string | null;
   category: string;
-  minimum_plan_tier: "free" | "pro" | "advanced" | "enterprise"; // ✅ Added plan tier
+  minimum_plan_tier: PlanTier;
 };
 
 type BusinessIntegration = {
@@ -30,8 +32,14 @@ type BusinessIntegration = {
   settings: { webhook_url?: string } | null;
 };
 
+// FIX: Added a specific type for the business data to avoid using any or @ts-ignore.
+type BusinessWithSubscription = {
+  id: number;
+  subscriptions: { plan_tier: PlanTier }[] | null;
+};
+
 // A mapping to give each plan tier a numeric value for easy comparison
-const PLAN_TIER_HIERARCHY = {
+const PLAN_TIER_HIERARCHY: Record<PlanTier, number> = {
   free: 0,
   pro: 1,
   advanced: 2,
@@ -44,12 +52,17 @@ export async function BusinessIntegrationsManager() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 1. Fetch the business and its current plan tier in parallel
+  if (!user) {
+    // Return null or a message if there's no user.
+    return <p>Please log in to manage integrations.</p>;
+  }
+
+  // 1. Fetch the business and its current plan tier with strong types
   const { data: business } = await supabase
     .from("businesses")
     .select("id, subscriptions(plan_tier)")
-    .eq("owner_id", user!.id)
-    .single();
+    .eq("owner_id", user.id)
+    .single<BusinessWithSubscription>();
 
   if (!business) {
     return (
@@ -59,15 +72,17 @@ export async function BusinessIntegrationsManager() {
     );
   }
 
-  // @ts-ignore - Supabase types can be tricky with nested arrays
-  const businessPlanTier = business.subscriptions[0]?.plan_tier || "free";
+  // FIX: This is now fully type-safe, removing the need for @ts-ignore.
+  const businessPlanTier: PlanTier =
+    business.subscriptions?.[0]?.plan_tier || "free";
   const businessPlanLevel = PLAN_TIER_HIERARCHY[businessPlanTier];
 
   // 2. Fetch the business's currently connected integrations
   const { data: connectedIntegrationsData } = await supabase
     .from("business_integrations")
     .select("id, integration_id, settings")
-    .eq("business_id", business.id);
+    .eq("business_id", business.id)
+    .returns<BusinessIntegration[]>(); // FIX: Use .returns() to apply the BusinessIntegration type.
 
   const connectedIntegrationsMap = new Map(
     (connectedIntegrationsData || []).map((bi) => [bi.integration_id, bi])
@@ -112,7 +127,7 @@ export async function BusinessIntegrationsManager() {
                   {integration.category}
                 </Badge>
 
-                {/* ✅ 4. Intelligent Button Rendering */}
+                {/* Intelligent Button Rendering */}
                 {connection ? (
                   // If connected, show "Manage"
                   <IntegrationManageModal

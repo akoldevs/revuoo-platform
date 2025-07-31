@@ -37,10 +37,13 @@ export default async function MySupportTicketsPage({
   const supabase = await createClient();
   const currentPersona = searchParams.from || "user";
 
-  // ✅ FIX: Pass the current persona to the database function for filtering
-  const { data: tickets } = await supabase
+  const { data: tickets, error } = await supabase
     .rpc("get_my_support_tickets", { p_persona: currentPersona })
     .returns<MyTicket[]>();
+
+  if (error) {
+    console.error("Error fetching support tickets:", error);
+  }
 
   return (
     <div className="w-full space-y-8">
@@ -79,27 +82,33 @@ export default async function MySupportTicketsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tickets && tickets.length > 0 ? (
-                  tickets.map((ticket) => (
-                    <TableRow key={ticket.ticket_id}>
-                      <TableCell className="font-semibold">
-                        #{ticket.ticket_id}
-                      </TableCell>
-                      <TableCell>{ticket.subject}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="capitalize">
-                          {ticket.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(ticket.last_updated), "MMM d, yyyy")}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                {/* FIX: Check if 'tickets' is an array and has items before mapping. */}
+                {Array.isArray(tickets) && tickets.length > 0 ? (
+                  tickets.map(
+                    (
+                      ticket: MyTicket // FIX: Explicitly typed 'ticket'.
+                    ) => (
+                      <TableRow key={ticket.ticket_id}>
+                        <TableCell className="font-semibold">
+                          #{ticket.ticket_id}
+                        </TableCell>
+                        <TableCell>{ticket.subject}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {ticket.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(ticket.last_updated), "MMM d, yyyy")}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                      You haven't submitted any support tickets from this
+                      {/* FIX: Escaped the apostrophe to resolve the JSX linting error. */}
+                      You haven&apos;t submitted any support tickets from this
                       workspace yet.
                     </TableCell>
                   </TableRow>

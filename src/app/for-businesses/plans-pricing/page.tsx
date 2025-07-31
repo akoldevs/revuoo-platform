@@ -20,21 +20,26 @@ export const dynamic = "force-dynamic";
 export default async function PlansAndPricingPage() {
   const supabase = await createClient();
 
-  // Fetch all plan details directly from the database.
-  const { data: plans, error } = await supabase.from("plans").select("*");
-  // We remove the database order and will sort in the code instead.
+  // Fetch all plan details and apply the 'Plan' type to the result.
+  // FIX: Used .returns<Plan[]>() to apply the type, which resolves the 'defined but never used' error.
+  const { data: plans, error } = await supabase
+    .from("plans")
+    .select("*")
+    .returns<Plan[]>();
 
   if (error) {
     console.error("Error fetching plans:", error);
   }
 
-  // ✅ FIXED: Apply a custom sort order to ensure plans are always displayed correctly.
+  // Apply a custom sort order to ensure plans are always displayed correctly.
   const sortedPlans = (plans || []).sort((a, b) => {
-    const order = { Free: 1, Pro: 2, Advanced: 3, Enterprise: 4 };
-    return (
-      (order[a.name as keyof typeof order] || 99) -
-      (order[b.name as keyof typeof order] || 99)
-    );
+    const order: Record<string, number> = {
+      Free: 1,
+      Pro: 2,
+      Advanced: 3,
+      Enterprise: 4,
+    };
+    return (order[a.name] || 99) - (order[b.name] || 99);
   });
 
   // We pass the fetched plans and the static features to a new client component

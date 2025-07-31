@@ -4,6 +4,15 @@
 import { Star, ThumbsUp, MessageSquare, Bookmark } from "lucide-react";
 import { ReactNode } from "react";
 
+// Define a specific type for the stats object to replace 'any'.
+// This ensures type safety and provides better autocompletion.
+interface ActivityStats {
+  reviews_written: number;
+  helpful_votes_received: number;
+  comments_made: number;
+  guides_bookmarked: number;
+}
+
 interface StatCardProps {
   label: string;
   value: number | string;
@@ -22,7 +31,8 @@ const StatCard = ({ label, value, icon }: StatCardProps) => (
   </div>
 );
 
-export default function ActivitySnapshot({ stats }: { stats: any }) {
+// FIX: Replaced 'any' with the specific 'ActivityStats' interface.
+export default function ActivitySnapshot({ stats }: { stats: ActivityStats }) {
   const statItems = [
     {
       label: "Reviews Written",
