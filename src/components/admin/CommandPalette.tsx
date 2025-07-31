@@ -25,10 +25,7 @@ import {
   LifeBuoy,
   PlusCircle,
   MessageSquare,
-  BarChart3,
-  Contact, // For User/Business results
-  ChevronsRight, // For Navigation results
-  Zap, // For Action results
+  BarChart3, // For Action results
 } from "lucide-react";
 import { commandPaletteSearch } from "@/app/admin/actions";
 import { useDebounce } from "use-debounce";

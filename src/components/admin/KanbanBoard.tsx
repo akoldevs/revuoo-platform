@@ -1,7 +1,7 @@
 // src/components/admin/KanbanBoard.tsx
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,

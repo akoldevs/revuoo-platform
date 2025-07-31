@@ -14,8 +14,9 @@ import { getMessagesForChannel } from "@/app/admin/actions";
 import { useDebouncedCallback } from "use-debounce";
 import { ChannelMembersManager } from "./ChannelMembersManager";
 
-// Type Definitions (assuming they are still correct)
+// --- Type Definitions ---
 type Profile = { id: string; full_name: string | null };
+// This is the single, consistent shape for a message object used throughout the client.
 type Message = {
   id: number;
   content: string;
@@ -26,8 +27,20 @@ type Channel = { id: number; name: string; member_count: number };
 type Presence = { user_id: string; name: string };
 type TypingIndicator = { profile_id: string; full_name: string | null };
 
+// This type represents the data shape from the server action where 'profiles' is an array.
+type MessageFromServer = Omit<Message, "profiles"> & {
+  profiles: Profile[] | null;
+};
+
+// This type helps us safely handle the Supabase presence state.
+type PresenceState = {
+  [key: string]: {
+    name: string;
+    [key: string]: unknown;
+  }[];
+};
+
 export function ChatClient() {
-  // ✅ All state is now managed here, starting empty
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -44,7 +57,7 @@ export function ChatClient() {
   const supabase = createClient();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // ✅ This new useEffect fetches all initial data on the client-side
+  // Effect to fetch all initial data on the client-side
   useEffect(() => {
     const fetchInitialData = async () => {
       const {
@@ -57,16 +70,24 @@ export function ChatClient() {
         );
         if (initialChannels && initialChannels.length > 0) {
           const generalChannel =
-            initialChannels.find((c) => c.name === "general") ||
+            initialChannels.find((c: Channel) => c.name === "general") ||
             initialChannels[0];
           setChannels(initialChannels);
           setActiveChannel(generalChannel);
-          const { data: initialMessages } = await getMessagesForChannel(
-            generalChannel.id
-          );
-          if (initialMessages) {
-            setMessages(initialMessages);
-            setMessageCache({ [generalChannel.id]: initialMessages });
+
+          const { data: initialMessagesFromServer } =
+            await getMessagesForChannel(generalChannel.id);
+          if (initialMessagesFromServer) {
+            const normalizedMessages = (
+              initialMessagesFromServer as MessageFromServer[]
+            ).map((msg) => ({
+              ...msg,
+              profiles: Array.isArray(msg.profiles)
+                ? msg.profiles[0] || null
+                : msg.profiles,
+            }));
+            setMessages(normalizedMessages);
+            setMessageCache({ [generalChannel.id]: normalizedMessages });
           }
         }
       }
@@ -111,18 +132,128 @@ export function ChatClient() {
     };
   }, [supabase, debouncedChannelRefetch]);
 
-  // All other useEffects and handlers remain largely the same, just ensure checks for `activeChannel`
-  // ... (the rest of your component logic will go here)
+  // Effect for active channel events
+  useEffect(() => {
+    if (!activeChannel || !user) return;
+    const activeChannelSub = supabase.channel(
+      `active-channel:${activeChannel.id}`,
+      { config: { presence: { key: user.id }, broadcast: { self: false } } }
+    );
+    activeChannelSub
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${activeChannel.id}`,
+        },
+        async (payload) => {
+          const { data: newMessageData } = await supabase
+            .from("messages")
+            .select("*, profiles(id, full_name)")
+            .eq("id", payload.new.id)
+            .single();
+          if (newMessageData) {
+            const fullMessage = newMessageData as Message;
+            setMessages((p) => [...p, fullMessage]);
+            setMessageCache((cache) => ({
+              ...cache,
+              [activeChannel.id]: [
+                ...(cache[activeChannel.id] || []),
+                fullMessage,
+              ],
+            }));
+          }
+        }
+      )
+      .on("presence", { event: "sync" }, () => {
+        const presences = activeChannelSub.presenceState<PresenceState>();
+        // ✅ FIX: This final version correctly and safely transforms the presence object, resolving the TypeScript error.
+        const newOnlinePresences: Presence[] = Object.keys(presences).map(
+          (key) => {
+            return {
+              user_id: key,
+              name: presences[key][0]?.name || "Anonymous",
+            };
+          }
+        );
+        setOnlinePresences(newOnlinePresences);
+      })
+      .on("broadcast", { event: "typing" }, (payload) => {
+        const { profile_id, full_name } = payload.payload;
+        if (profile_id !== user.id) {
+          setTyping((current) => [
+            ...current.filter((p) => p.profile_id !== profile_id),
+            { profile_id, full_name },
+          ]);
+          setTimeout(
+            () =>
+              setTyping((current) =>
+                current.filter((p) => p.profile_id !== profile_id)
+              ),
+            3000
+          );
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await activeChannelSub.track({
+            name: user.user_metadata.full_name || user.email,
+          });
+        }
+      });
+    return () => {
+      supabase.removeChannel(activeChannelSub);
+    };
+  }, [activeChannel, supabase, user]);
 
-  // Handlers
+  // --- Handler Functions ---
   const handleChannelClick = (channel: Channel) => {
-    /* ... existing logic ... */
+    if (channel.id === activeChannel?.id) return;
+    startTransition(async () => {
+      setActiveChannel(channel);
+      if (messageCache[channel.id]) {
+        setMessages(messageCache[channel.id]);
+      } else {
+        setMessages([]);
+        const { data } = await getMessagesForChannel(channel.id);
+        if (data) {
+          const normalizedMessages = (data as MessageFromServer[]).map(
+            (msg) => ({
+              ...msg,
+              profiles: Array.isArray(msg.profiles)
+                ? msg.profiles[0] || null
+                : msg.profiles,
+            })
+          );
+          setMessages(normalizedMessages);
+          setMessageCache((cache) => ({
+            ...cache,
+            [channel.id]: normalizedMessages,
+          }));
+        }
+      }
+    });
   };
+
   const handleSendMessage = async (e: React.FormEvent) => {
-    /* ... existing logic ... */
+    e.preventDefault();
+    if (!activeChannel || !user || newMessage.trim() === "") return;
+    const { error } = await supabase.from("messages").insert({
+      channel_id: activeChannel.id,
+      profile_id: user.id,
+      content: newMessage,
+    });
+    if (error) {
+      console.error("Error sending message:", error);
+    } else {
+      setNewMessage("");
+    }
   };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    /* ... existing logic ... */
+    setNewMessage(e.target.value);
   };
 
   if (isLoading) {
@@ -133,7 +264,6 @@ export function ChatClient() {
     );
   }
 
-  // ✅ The full component JSX now lives here
   return (
     <div className="flex h-full border rounded-lg bg-card">
       <div className="w-1/4 border-r bg-muted/50 p-4 flex flex-col">

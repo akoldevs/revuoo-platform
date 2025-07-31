@@ -1,6 +1,12 @@
 // src/components/admin/InvitationAnalytics.tsx
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -28,8 +34,6 @@ type LeaderboardEntry = {
 export async function InvitationAnalytics() {
   const supabase = await createClient();
 
-  // ✅ FIX: The .returns<LeaderboardEntry[]>() correctly tells TypeScript
-  // that we expect an array of leaderboard entries.
   const [analyticsRes, leaderboardRes] = await Promise.all([
     supabase.rpc("get_invitation_analytics_for_admin").single<AnalyticsData>(),
     supabase.rpc("get_invitation_leaderboard").returns<LeaderboardEntry[]>(),
@@ -37,6 +41,10 @@ export async function InvitationAnalytics() {
 
   const analytics = analyticsRes.data;
   const leaderboard = leaderboardRes.data;
+
+  // ✅ FIX: Add a type guard to ensure 'leaderboard' is an array before using it.
+  // This resolves all the TypeScript errors.
+  const isLeaderboardArray = Array.isArray(leaderboard);
 
   const stats = [
     {
@@ -65,6 +73,9 @@ export async function InvitationAnalytics() {
     <Card className="mt-4">
       <CardHeader>
         <CardTitle>Platform-Wide Invitation Performance</CardTitle>
+        <CardDescription>
+          An overview of invitation engagement and top-performing businesses.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -100,8 +111,8 @@ export async function InvitationAnalytics() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaderboard && leaderboard.length > 0 ? (
-                  leaderboard.map((entry, index) => (
+                {isLeaderboardArray && leaderboard.length > 0 ? (
+                  leaderboard.map((entry: LeaderboardEntry, index: number) => (
                     <TableRow key={entry.business_id}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell>

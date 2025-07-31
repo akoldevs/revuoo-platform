@@ -18,26 +18,34 @@ import {
 } from "@/components/ui/table";
 import { BarChart, Eye } from "lucide-react";
 import Link from "next/link";
-import { unstable_noStore as noStore } from "next/cache"; // ✅ 1. Import noStore
+import { unstable_noStore as noStore } from "next/cache";
+import { Metadata } from "next";
+// ✅ FIX: Imported the 'groq' tagged template literal from next-sanity.
+import { groq } from "next-sanity";
 
+// --- TypeScript Interfaces ---
 type SanityPost = {
   _id: string;
   title: string;
   slug: { current: string };
 };
 
-type Analytics = {
-  id: string;
-  view_count: number;
+// --- Data Fetching Queries ---
+const blogPostsQuery = groq`*[_type == "post"]{_id, title, slug}`;
+
+export const metadata: Metadata = {
+  title: "Sitemap | Revuoo",
+  description:
+    "Navigate Revuoo with ease. Explore categories, reviews, guides, and business tools from one central hub.",
 };
 
 export async function ContentAnalytics() {
-  noStore(); // ✅ 2. Add this line to prevent caching
+  noStore();
 
   const supabase = await createSupabaseClient();
 
   const [posts, analyticsData] = await Promise.all([
-    sanityClient.fetch<SanityPost[]>(`*[_type == "post"]{_id, title, slug}`),
+    sanityClient.fetch<SanityPost[]>(blogPostsQuery),
     supabase.from("content_analytics").select("id, view_count"),
   ]);
 

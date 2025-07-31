@@ -1,3 +1,4 @@
+// src/components/admin/RejectWithFeedbackModal.tsx
 "use client";
 
 import {
@@ -15,13 +16,21 @@ import { useFormStatus } from "react-dom";
 import { rejectExpertReview } from "@/app/admin/actions";
 import { toast } from "sonner";
 import { useRef } from "react";
+import { Loader2 } from "lucide-react"; // Added for better pending state
 
 // A submit button that shows a pending state while the server action is running.
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="destructive" disabled={pending}>
-      {pending ? "Submitting..." : "Reject and Send Feedback"}
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Submitting...
+        </>
+      ) : (
+        "Reject and Send Feedback"
+      )}
     </Button>
   );
 }
@@ -39,13 +48,17 @@ export function RejectWithFeedbackModal({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
 
-  // This is the modern way to handle form submissions in Next.js.
-  // It calls the server action and provides feedback without a full page reload.
   const formAction = async (formData: FormData) => {
     const result = await rejectExpertReview(formData);
+
+    // ✅ FIX: Correctly handle the structured error object returned by the server action.
     if (result?.error) {
+      // Extract the first error message from the object to display in the toast.
+      const errorValues = Object.values(result.error).flat();
+      const errorMessage = errorValues[0] || "An unknown error occurred.";
+
       toast.error("Failed to reject review", {
-        description: result.error,
+        description: errorMessage,
       });
     } else {
       toast.success("Review Rejected", {

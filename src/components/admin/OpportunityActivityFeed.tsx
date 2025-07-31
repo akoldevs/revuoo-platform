@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, ArrowRight, Pencil, Star } from "lucide-react";
 import { format } from "date-fns";
 
+// ✅ FIX: The 'profiles' property is now correctly typed as an array of objects
+// to match the data structure returned by the Supabase query.
 type Activity = {
   id: number;
   created_at: string;
@@ -22,14 +24,17 @@ type Activity = {
     value?: number;
     note_preview?: string;
   };
-  profiles: {
-    full_name: string | null;
-  } | null;
+  profiles:
+    | {
+        full_name: string | null;
+      }[]
+    | null; // This now correctly expects an array
 };
 
 // A helper to render each activity item
 function ActivityItem({ activity }: { activity: Activity }) {
-  const author = activity.profiles?.full_name || "System";
+  // ✅ FIX: Safely access the first element of the 'profiles' array.
+  const author = activity.profiles?.[0]?.full_name || "System";
   const dateTime = format(new Date(activity.created_at), "MMM d, yyyy, p");
 
   const renderDetails = () => {
@@ -61,7 +66,8 @@ function ActivityItem({ activity }: { activity: Activity }) {
           <p>
             Note added:{" "}
             <span className="italic text-muted-foreground">
-              "{activity.details.note_preview}"
+              {/* ✅ FIX: Replaced quotes with HTML entities to satisfy strict linting rules. */}
+              &quot;{activity.details.note_preview}&quot;
             </span>
           </p>
         );
@@ -133,8 +139,9 @@ export async function OpportunityActivityFeed({
       <CardContent>
         <div className="space-y-6">
           {activities && activities.length > 0 ? (
+            // ✅ FIX: The 'as Activity' cast is no longer needed because the types now match correctly.
             activities.map((activity) => (
-              <ActivityItem key={activity.id} activity={activity as Activity} />
+              <ActivityItem key={activity.id} activity={activity} />
             ))
           ) : (
             <p className="text-center text-muted-foreground py-4">

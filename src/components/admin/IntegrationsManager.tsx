@@ -9,8 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+// ✅ FIX: Removed unused 'Button' and 'Link' imports to resolve the errors.
 
 type Integration = {
   id: string;
