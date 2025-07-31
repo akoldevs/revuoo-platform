@@ -1,15 +1,15 @@
 // src/app/write-a-review/[slug]/page.tsx
-import { createClient } from '@/lib/supabase/server'; // Corrected path
-import { notFound } from 'next/navigation';
-import ReviewForm from '../ReviewForm'; // Corrected path
+import { createClient } from "@/lib/supabase/server"; // Corrected path
+import { notFound } from "next/navigation";
+import ReviewForm from "@/components/forms/ReviewForm";
 
 // This function fetches the business ID and name from the slug
 async function getBusiness(slug: string) {
   const supabase = await createClient(); // <-- THE FINAL FIX IS HERE
   const { data, error } = await supabase
-    .from('businesses')
-    .select('id, name')
-    .eq('slug', slug)
+    .from("businesses")
+    .select("id, name")
+    .eq("slug", slug)
     .single();
 
   if (error || !data) {
@@ -18,7 +18,11 @@ async function getBusiness(slug: string) {
   return data;
 }
 
-export default async function WriteReviewPage({ params }: { params: { slug: string } }) {
+export default async function WriteReviewPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const business = await getBusiness(params.slug);
 
   // If no business matches the slug, show a 404 page

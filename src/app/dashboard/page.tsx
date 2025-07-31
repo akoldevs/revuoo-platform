@@ -1,20 +1,47 @@
 // src/app/dashboard/page.tsx
-import Link from 'next/link';
+import { createClient } from "@/lib/supabase/server";
+import ActivitySnapshot from "@/components/dashboard/ActivitySnapshot";
+import SmartRecommendations from "@/components/dashboard/SmartRecommendations"; // Add this import
 
-export default function DashboardPage() {
+export default async function DashboardOverviewPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // We can fetch all our data in parallel for better performance
+  const [profileRes, activityStatsRes, recommendationsRes] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
+    supabase.rpc("get_user_activity_stats").single(),
+    supabase.rpc("get_user_recommendations", { p_user_id: user!.id }),
+  ]);
+
+  const profile = profileRes.data;
+  const activityStats = activityStatsRes.data;
+  const recommendations = recommendationsRes.data;
+
+  // Handle potential errors if needed
+  if (activityStatsRes.error)
+    console.error("Error fetching activity stats:", activityStatsRes.error);
+  if (recommendationsRes.error)
+    console.error("Error fetching recommendations:", recommendationsRes.error);
+
   return (
-    <div className="w-full max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8">My Dashboard</h1>
-      <p>Welcome to your Revuoo dashboard. From here you can manage your content and profile.</p>
+    <div>
+      <h1 className="text-3xl font-bold text-gray-900">
+        Welcome back, {profile?.full_name?.split(" ")[0] || "User"} 👋
+      </h1>
+      <p className="mt-2 text-gray-600">
+        Here&apos;s a snapshot of your activity and impact on the Revuoo
+        community.
+      </p>
 
-      <div className="mt-6 space-y-2">
-        <Link href="/dashboard/my-reviews" className="text-indigo-600 hover:underline block">
-          → View My Reviews
-        </Link>
-        <Link href="/dashboard/business" className="text-indigo-600 hover:underline block">
-          → View My Business Dashboard
-        </Link>
-      </div>
+      {activityStats && <ActivitySnapshot stats={activityStats} />}
+
+      {/* Display the SmartRecommendations component */}
+      {recommendations && (
+        <SmartRecommendations recommendations={recommendations} />
+      )}
     </div>
   );
 }

@@ -1,0 +1,94 @@
+// src/app/dashboard/contributor/content/revise/[reviewId]/page.tsx
+import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
+import { SubmissionForm } from "@/components/contributor/SubmissionForm";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
+
+// This type defines the shape of the data we fetch for the rejected review.
+type RejectedReviewData = {
+  id: string;
+  assignment_id: number;
+  title: string;
+  summary: string | null;
+  body_content: any; // TipTap content is a JSON object
+  rating_overall: number;
+  rating_pros: string[];
+  rating_cons: string[];
+  moderator_notes: string | null;
+};
+
+export default async function ReviseContentPage({
+  params,
+}: {
+  params: { reviewId: string };
+}) {
+  const supabase = await createClient();
+  const reviewId = params.reviewId;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return notFound();
+  }
+
+  // Fetch the specific review that needs to be revised.
+  const { data: review, error } = await supabase
+    .from("expert_reviews")
+    .select(
+      "id, assignment_id, title, summary, body_content, rating_overall, rating_pros, rating_cons, contributor_id, status, moderator_notes"
+    )
+    .eq("id", reviewId)
+    .single();
+
+  // Security Checks:
+  // 1. Ensure the review exists.
+  // 2. Ensure the logged-in user is the owner of the review.
+  // 3. Ensure the review's status is 'rejected'.
+  if (
+    error ||
+    !review ||
+    review.contributor_id !== user.id ||
+    review.status !== "rejected"
+  ) {
+    return notFound();
+  }
+
+  // Prepare the initial data for the form.
+  const initialData = {
+    ...review,
+    bodyContent: JSON.stringify(review.body_content), // Convert JSON to string for the form
+    ratingPros: review.rating_pros.join(", "), // Convert array to comma-separated string
+    ratingCons: review.rating_cons.join(", "), // Convert array to comma-separated string
+    ratingOverall: review.rating_overall,
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm text-muted-foreground">
+          Revising your submission for:
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{review.title}</h1>
+      </div>
+
+      {/* Display the moderator's feedback prominently */}
+      <Alert variant="destructive">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Editor Feedback</AlertTitle>
+        <AlertDescription>
+          {review.moderator_notes || "No specific feedback was provided."}
+        </AlertDescription>
+      </Alert>
+
+      {/* Pass the reviewId and initialData to the form */}
+      <SubmissionForm
+        reviewId={review.id}
+        assignmentId={review.assignment_id}
+        initialData={initialData}
+      />
+    </div>
+  );
+}

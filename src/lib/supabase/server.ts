@@ -1,11 +1,10 @@
 // src/lib/supabase/server.ts
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-// This is now an async function
-export const createClient = async () => {
-  // We now await the cookies() call
-  const cookieStore = cookies()
+export const createClient = () => {
+  // Changed to a const arrow function
+  const cookieStore = cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,25 +12,23 @@ export const createClient = async () => {
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value, ...options })
-          } catch {
-            // The `set` method was called from a Server Component.
-            // This can be ignored.
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // This is expected when called from a Server Component.
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch {
-            // The `delete` method was called from a Server Component.
-            // This can be ignored.
+            cookieStore.set({ name, value: "", ...options });
+          } catch (error) {
+            // This is expected when called from a Server Component.
           }
         },
       },
     }
-  )
-}
+  );
+};

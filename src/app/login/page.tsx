@@ -1,63 +1,64 @@
-'use client'
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+// src/app/login/page.tsx
+"use client";
+import { createClient } from "@/lib/supabase/client";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react"; // ✅ Import useState
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const supabase = createClient()
+  const supabase = createClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setSubmitted(false)
+  // ✅ FIX: Use state to safely handle the browser-only 'location' object
+  const [redirectUrl, setRedirectUrl] = useState("");
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // This is the page the user will be redirected to after clicking the magic link
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+  useEffect(() => {
+    // This code now runs only in the browser, after the component has mounted
+    setRedirectUrl(`${window.location.origin}/auth/callback`);
 
-    if (error) {
-      console.error('Error sending magic link:', error)
-      alert('Error: Could not send magic link.')
-    } else {
-      setSubmitted(true)
-    }
-  }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        router.push("/admin/chat");
+      }
+    });
 
-  if (submitted) {
-    return (
-      <div className="w-full max-w-sm mx-auto py-12 px-6 text-center">
-         <h1 className="text-2xl font-bold mb-4">Check your email</h1>
-         <p>A magic link has been sent to **{email}**. Click the link to sign in.</p>
-      </div>
-    )
-  }
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, router]);
 
   return (
-    <div className="w-full max-w-sm mx-auto py-12 px-6">
-      <h1 className="text-2xl font-bold mb-6">Sign In / Sign Up</h1>
-      <form onSubmit={handleSignIn} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          />
+    <div className="flex justify-center items-center py-16">
+      <div className="w-full max-w-md p-8 space-y-6 bg-card text-card-foreground rounded-lg border">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Log In to Revuoo</h1>
+          <p className="text-muted-foreground">Real Reviews. Real Knowledge.</p>
         </div>
-        <button
-          type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800"
-        >
-          Sign in with Magic Link
-        </button>
-      </form>
+
+        {error && (
+          <div className="p-4 text-center text-sm text-destructive bg-destructive/10 rounded-md">
+            {error}
+          </div>
+        )}
+
+        {/* Only render the Auth component once we have the redirectUrl */}
+        {redirectUrl && (
+          <Auth
+            supabaseClient={supabase}
+            appearance={{ theme: ThemeSupa }}
+            providers={["google", "facebook", "apple"]}
+            view="magic_link"
+            showLinks={true}
+            // ✅ FIX: Use the state variable which is safely set on the client
+            redirectTo={redirectUrl}
+          />
+        )}
+      </div>
     </div>
-  )
+  );
 }

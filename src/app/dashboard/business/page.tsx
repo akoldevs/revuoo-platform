@@ -1,42 +1,90 @@
 // src/app/dashboard/business/page.tsx
 
-// src/app/dashboard/business/page.tsx
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { submitResponse } from "./actions";
-import { Edit, GalleryHorizontal, BarChart2 } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Star, Eye, MessageSquare } from "lucide-react";
+import RecentReviews from "@/components/dashboard/RecentReviews";
+import ProfileCompleteness from "@/components/dashboard/ProfileCompleteness";
+
+type BusinessStats = {
+  total_reviews: number;
+  average_rating: number;
+  new_reviews_last_30_days: number;
+  profile_views_last_30_days: number;
+  current_revuoo_score: number;
+};
+
+type Review = {
+  id: number;
+  title: string;
+  overall_rating: number | null;
+  created_at: string;
+  profiles: { full_name: string | null } | null;
+};
+
+type BusinessProfile = {
+  id: number;
+  name: string;
+  description: string | null;
+  address: string | null;
+  phone_number: string | null;
+  website_url: string | null;
+  operating_hours: any;
+  services: string[] | null;
+};
+
+const calculateProfileCompleteness = (business: BusinessProfile) => {
+  const fields = [
+    {
+      key: "description",
+      label: "Add a business description",
+      href: "/dashboard/business/edit",
+    },
+    {
+      key: "address",
+      label: "Add your address",
+      href: "/dashboard/business/edit",
+    },
+    {
+      key: "phone_number",
+      label: "Add a phone number",
+      href: "/dashboard/business/edit",
+    },
+    {
+      key: "website_url",
+      label: "Link your website",
+      href: "/dashboard/business/edit",
+    },
+    {
+      key: "operating_hours",
+      label: "Set your operating hours",
+      href: "/dashboard/business/edit",
+    },
+    {
+      key: "services",
+      label: "List your services",
+      href: "/dashboard/business/edit",
+    },
+  ];
+
+  let completedFields = 0;
+  const missingSteps: { label: string; href: string }[] = [];
+
+  fields.forEach((field) => {
+    const value = business[field.key as keyof BusinessProfile];
+    if (value && (Array.isArray(value) ? value.length > 0 : true)) {
+      completedFields++;
+    } else {
+      missingSteps.push({ label: field.label, href: field.href });
+    }
+  });
+
+  const percentage = Math.round((completedFields / fields.length) * 100);
+  return { percentage, missingSteps };
+};
 
 export const dynamic = "force-dynamic";
-
-// ✅ Type definitions to fix TypeScript errors
-interface Review {
-  id: string;
-  created_at: string;
-  title: string;
-  summary: string;
-  overall_rating: number | null;
-  profiles: {
-    full_name: string | null;
-  } | null;
-}
-
-interface Business {
-  id: string;
-  name: string;
-  reviews: Review[];
-}
 
 export default async function BusinessDashboardPage() {
   const supabase = await createClient();
@@ -44,122 +92,109 @@ export default async function BusinessDashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login?message=You must be logged in to view this page.");
-  }
+  if (!user) notFound();
 
-  const { data } = await supabase
+  const { data: business } = await supabase
     .from("businesses")
-    .select(
-      `
-      id,
-      name,
-      reviews (
-        id,
-        created_at,
-        title,
-        summary,
-        overall_rating,
-        profiles (full_name)
-      )
-    `
-    )
+    .select("*")
     .eq("owner_id", user.id)
-    .order("created_at", { referencedTable: "reviews", ascending: false })
     .single();
 
-  const business = data as Business | null;
+  if (!business) return redirect("/for-businesses");
 
-  if (!business) {
+  const [{ data: statsData }, { data: recentReviewsData }] = await Promise.all([
+    supabase.rpc("get_business_dashboard_overview", {
+      p_business_id: business.id,
+    }),
+    supabase
+      .from("reviews")
+      .select("id, title, overall_rating, created_at, profiles (full_name)")
+      .eq("business_id", business.id)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
+
+  const stats =
+    statsData && statsData[0] ? (statsData[0] as BusinessStats) : null;
+  const recentReviews = (recentReviewsData as Review[] | null) || [];
+  const { percentage, missingSteps } = calculateProfileCompleteness(business);
+
+  if (!stats) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-6 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">No Business Profile Found</h1>
-        <p>Your account is not associated with a business profile.</p>
-        <p className="mt-2 text-sm text-gray-600">
-          Please find your business on Revuoo and use the &quot;Claim
-          Profile&quot; button.
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Dashboard for {business.name}
+        </h1>
+        <p className="mt-4 text-red-600">
+          Could not load business statistics at this time.
         </p>
-        <Button asChild className="mt-4">
-          <Link href="/reviews">Explore Businesses</Link>
-        </Button>
       </div>
     );
   }
 
-  return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-12">
-      <div className="border-b pb-6 mb-8">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-bold">Business Dashboard</h1>
-            <p className="mt-2 text-2xl text-indigo-600">{business.name}</p>
-          </div>
+  const statCards = [
+    {
+      label: "Revuoo Score",
+      value:
+        typeof stats.current_revuoo_score === "number"
+          ? stats.current_revuoo_score.toFixed(1)
+          : "N/A",
+      icon: <Star className="h-5 w-5 text-muted-foreground" />,
+    },
+    {
+      label: "Average Rating",
+      value:
+        typeof stats.average_rating === "number"
+          ? stats.average_rating.toFixed(1)
+          : "N/A",
+      icon: <Star className="h-5 w-5 text-muted-foreground" />,
+    },
+    {
+      label: "Total Reviews",
+      value: stats.total_reviews ?? "N/A",
+      icon: <MessageSquare className="h-5 w-5 text-muted-foreground" />,
+    },
+    {
+      label: "Profile Views (30d)",
+      value: stats.profile_views_last_30_days ?? "N/A",
+      icon: <Eye className="h-5 w-5 text-muted-foreground" />,
+    },
+  ];
 
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-              <Link href="/dashboard/business/edit">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Profile
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/business/gallery">
-                <GalleryHorizontal className="mr-2 h-4 w-4" />
-                Manage Gallery
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/business/analytics">
-                <BarChart2 className="mr-2 h-4 w-4" />
-                View Analytics
-              </Link>
-            </Button>
-          </div>
-        </div>
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Dashboard for {business.name}
+        </h1>
+        <p className="mt-2 text-gray-600">
+          Here&apos;s a performance summary of your business profile on Revuoo.
+        </p>
       </div>
 
-      <h2 className="text-3xl font-semibold mb-6">Customer Reviews</h2>
-      <div className="space-y-8">
-        {business.reviews && business.reviews.length > 0 ? (
-          business.reviews.map((review) => (
-            <Card key={review.id} className="w-full">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{review.title}</CardTitle>
-                  {review.overall_rating && (
-                    <Badge>{review.overall_rating.toFixed(1)} ★</Badge>
-                  )}
-                </div>
-                <CardDescription>
-                  By {review.profiles?.full_name || "Anonymous"} on{" "}
-                  {format(new Date(review.created_at), "MMM d, yyyy")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="italic">&quot;{review.summary}&quot;</p>
-              </CardContent>
-              <CardContent>
-                <h4 className="font-semibold mb-2">Leave a Public Response</h4>
-                <form action={submitResponse}>
-                  <input type="hidden" name="reviewId" value={review.id} />
-                  <input type="hidden" name="businessId" value={business.id} />
-                  <Textarea
-                    name="responseText"
-                    placeholder="Thank your customer or address their concerns..."
-                    className="mb-2"
-                  />
-                  <Button type="submit" size="sm">
-                    Post Response
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <p className="py-10 text-center text-gray-500">
-            You have not received any reviews yet.
-          </p>
-        )}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((card) => (
+          <Card key={card.label}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {card.label}
+              </CardTitle>
+              {card.icon}
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{String(card.value)}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <RecentReviews reviews={recentReviews} />
+        <ProfileCompleteness
+          percentage={percentage}
+          missingSteps={missingSteps}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// src/components/pricing/PricingTable.tsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -7,13 +6,42 @@ import { Dialog } from "@headlessui/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { plans, features } from "@/lib/pricing-data";
+// ❌ We no longer import static data.
+// import { plans, features } from "@/lib/pricing-data";
+
+// ✅ Define the types for the props we will receive.
+type Plan = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price_monthly: number;
+  price_annually: number;
+  is_most_popular: boolean;
+};
+
+type Feature = {
+  name: string;
+  tiers: { [key: string]: boolean | string };
+  tooltip?: string;
+};
+
+type FeatureCategory = {
+  category: string;
+  items: Feature[];
+};
 
 interface PricingTableProps {
   billingCycle: "monthly" | "annually";
+  plans: Plan[];
+  features: FeatureCategory[];
 }
 
-export default function PricingTable({ billingCycle }: PricingTableProps) {
+export default function PricingTable({
+  billingCycle,
+  plans,
+  features,
+}: PricingTableProps) {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -41,7 +69,7 @@ export default function PricingTable({ billingCycle }: PricingTableProps) {
         ),
       }))
       .filter((category) => category.items.length > 0);
-  }, [searchTerm]);
+  }, [searchTerm, features]);
 
   return (
     <section
@@ -53,13 +81,14 @@ export default function PricingTable({ billingCycle }: PricingTableProps) {
           Pricing Plans
         </h2>
 
+        {/* ✅ The component now maps over the 'plans' prop */}
         <div className="mx-auto grid max-w-md grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-4 transition-all duration-500">
           {plans.map((plan) => (
             <div
               key={plan.name}
               className={cn(
                 "rounded-3xl p-8 flex flex-col transition-shadow duration-300 hover:shadow-md",
-                plan.isMostPopular
+                plan.is_most_popular
                   ? "bg-white ring-2 ring-indigo-600"
                   : "bg-gray-50 ring-1 ring-gray-200"
               )}
@@ -83,7 +112,11 @@ export default function PricingTable({ billingCycle }: PricingTableProps) {
                 ) : (
                   <>
                     <span className="text-4xl font-bold tracking-tight text-gray-900">
-                      ${plan.price[billingCycle]}
+                      {/* ✅ Prices are now read from the dynamic plan object */}
+                      $
+                      {billingCycle === "monthly"
+                        ? plan.price_monthly
+                        : plan.price_annually}
                     </span>
                     <span className="text-sm font-semibold leading-6 text-gray-600">
                       /month
@@ -95,13 +128,14 @@ export default function PricingTable({ billingCycle }: PricingTableProps) {
                 asChild
                 className="mt-6 w-full"
                 size="lg"
-                variant={plan.isMostPopular ? "default" : "outline"}
+                variant={plan.is_most_popular ? "default" : "outline"}
               >
                 <a
                   href={plan.name === "Enterprise" ? "/contact" : "#"}
                   aria-label={`Select ${plan.name} plan`}
                 >
-                  {plan.cta}
+                  {/* This can be customized later if needed */}
+                  Choose Plan
                 </a>
               </Button>
               <ul
