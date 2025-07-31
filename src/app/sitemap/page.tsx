@@ -1,7 +1,6 @@
 // src/app/sitemap/page.tsx
 
 import Link from "next/link";
-// ✅ FIX: Changed the import path to the correct server client file
 import { createClient } from "@/lib/supabase/server";
 import { client } from "@/sanity/lib/client";
 import { groq } from "next-sanity";
@@ -38,8 +37,9 @@ export const metadata: Metadata = {
 };
 
 export default async function SitemapPage() {
-  // ✅ FIX: Use the standard server client, not a separate 'admin' one
-  const supabase = createClient();
+  // FIX: Added 'await' because createClient is now an async function.
+  // This ensures we get the actual client instance, not a Promise.
+  const supabase = await createClient();
 
   const [{ data: businessCategories }, blogPosts] = await Promise.all([
     supabase
@@ -140,7 +140,6 @@ export default async function SitemapPage() {
                   Guides & Insights
                 </Link>
                 <ul className="mt-2 space-y-2 pl-4 border-l">
-                  {/* ✅ FIX: Explicitly typed 'post' to satisfy TypeScript */}
                   {blogPosts.map((post: Post) => (
                     <li key={post._id} data-sitemap-link>
                       <Link
